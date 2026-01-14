@@ -38,7 +38,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Cache Gradle packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -85,7 +85,7 @@ jobs:
         echo "- **Build Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build-info.md
 
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: archaeology-field-${{ github.event.inputs.release_type }}-${{ github.run_number }}
         path: |
