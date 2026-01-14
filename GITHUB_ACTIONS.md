@@ -8,9 +8,8 @@ This repository includes comprehensive GitHub Actions workflows for automated bu
 
 | Workflow | Trigger | Purpose | Artifacts |
 |----------|---------|---------|-----------|
-| **Android CI** | Push, PR, Release | Build & Test | Debug/Release APKs, Reports |
+| **Android CI** | Push, PR, Release | Build & Release | Debug/Release APKs |
 | **Release Build** | Manual | Custom Releases | Versioned APKs, GitHub Release |
-| **Code Quality** | Push, PR | Quality Checks | Detekt, Lint, Test Reports |
 
 ---
 
@@ -41,7 +40,7 @@ git push origin main
 ### **CI Build Artifacts**
 - **Debug APK**: `archaeology-field-debug.apk`
 - **Release APK**: `archaeology-field-release.apk`
-- **Reports**: Lint, test, and quality reports
+- **Build Logs**: Detailed build information
 
 ### **Manual Build Artifacts**
 - **Named APKs**: `archaeology-field-debug-{build_number}.apk`

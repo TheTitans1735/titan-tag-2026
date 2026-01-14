@@ -36,21 +36,15 @@ This repository includes comprehensive GitHub Actions workflows for building, te
 - `version_name`: Custom version (e.g., 1.0.0)
 - `create_tag`: Create Git tag
 
-### 3. **Code Quality** (`code-quality.yml`)
-**Triggers**: Push to main/develop, Pull Requests
+### 3. **Release Build** (`release-build.yml`)
+**Triggers**: Manual workflow dispatch
 
 **Features**:
-- 🔍 Detekt static analysis
-- 🧹 Android Lint
-- 🧪 Unit Tests
-- 📊 SonarCloud analysis
-- 📋 Comprehensive reports
-
-**Reports**:
-- Detekt reports (HTML/XML)
-- Lint reports (HTML)
-- Test reports (HTML/XML)
-- SonarCloud analysis
+- 🎛️ Choose Debug or Release build
+- 📝 Custom version naming
+- 🏷️ Optional Git tag creation
+- 📦 Build information generation
+- 🚀 Upload to GitHub Release (if tagged)
 
 ## 🚀 **How to Use**
 
@@ -92,18 +86,16 @@ This repository includes comprehensive GitHub Actions workflows for building, te
 
 ### **Required Secrets**
 - `GITHUB_TOKEN`: Automatically provided by GitHub
-- `SONAR_TOKEN`: For SonarCloud analysis (optional)
 
 ### **Build Variants**
 - **Debug**: For testing and development
 - **Release**: Signed production build
 - **Version Management**: Automatic build numbering
 
-### **Code Quality Tools**
-- **Detekt**: Kotlin static analysis
-- **Android Lint**: Android-specific checks
-- **Unit Tests**: JUnit + Mockito
-- **SonarCloud**: Code quality analysis
+### **Build Tools**
+- **Android Build**: Gradle-based Android compilation
+- **APK Generation**: Debug and Release variants
+- **Artifact Storage**: GitHub Actions artifacts
 
 ## 📈 **Build Performance**
 

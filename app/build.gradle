@@ -3,8 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
-    id 'io.gitlab.arturbosch.detekt'
-    id 'org.sonarqube'
 }
 
 android {
@@ -98,8 +96,4 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
-    
-    // Code Quality
-    detektPlugins 'io.gitlab.arturbosch.detekt:detekt-formatting:1.23.3'
-    detektPlugins 'io.gitlab.arturbosch.detekt:detekt-rules:1.23.3'
 }

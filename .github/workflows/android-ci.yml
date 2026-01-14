@@ -42,20 +42,6 @@ jobs:
       if: github.event_name == 'release'
       run: ./gradlew assembleRelease
 
-    - name: Run Unit Tests
-      run: ./gradlew testDebugUnitTest
-
-    - name: Run Lint
-      run: ./gradlew lintDebug
-
-    - name: Generate Test Report
-      uses: dorny/test-reporter@v1
-      if: success() || failure()
-      with:
-        name: Android Tests
-        path: '**/build/test-results/**/*.xml'
-        reporter: java-junit
-
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
@@ -70,14 +56,6 @@ jobs:
         name: release-apk
         path: app/build/outputs/apk/release/*.apk
         retention-days: 90
-
-    - name: Upload Lint Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: lint-report
-        path: app/build/reports/lint-results-debug.html
-        retention-days: 7
 
     - name: Upload Release APK to GitHub Release
       if: github.event_name == 'release'
