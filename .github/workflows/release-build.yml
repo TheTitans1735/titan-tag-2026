@@ -1,0 +1,108 @@
+name: Android Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+      version_name:
+        description: 'Version name (e.g., 1.0.0)'
+        required: false
+        type: string
+      create_tag:
+        description: 'Create Git tag'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Update version name
+      if: github.event.inputs.version_name != ''
+      run: |
+        sed -i "s/versionCode .*/versionCode ${{ github.run_number }}/" app/build.gradle
+        sed -i "s/versionName .*/versionName '${{ github.event.inputs.version_name }}'/" app/build.gradle
+
+    - name: Build Debug APK
+      if: github.event.inputs.release_type == 'debug'
+      run: ./gradlew assembleDebug
+
+    - name: Build Release APK
+      if: github.event.inputs.release_type == 'release'
+      run: ./gradlew assembleRelease
+
+    - name: Create Git Tag
+      if: github.event.inputs.create_tag == 'true' && github.event.inputs.version_name != ''
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git tag -a v${{ github.event.inputs.version_name }} -m "Release v${{ github.event.inputs.version_name }}"
+        git push origin v${{ github.event.inputs.version_name }}
+
+    - name: Generate APK Info
+      run: |
+        echo "## Build Information" > build-info.md
+        echo "- **Build Type**: ${{ github.event.inputs.release_type }}" >> build-info.md
+        echo "- **Build Number**: ${{ github.run_number }}" >> build-info.md
+        echo "- **Commit**: ${{ github.sha }}" >> build-info.md
+        echo "- **Branch**: ${{ github.ref_name }}" >> build-info.md
+        if [ "${{ github.event.inputs.version_name }}" != "" ]; then
+          echo "- **Version**: ${{ github.event.inputs.version_name }}" >> build-info.md
+        fi
+        echo "- **Build Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> build-info.md
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: archaeology-field-${{ github.event.inputs.release_type }}-${{ github.run_number }}
+        path: |
+          app/build/outputs/apk/${{ github.event.inputs.release_type }}/*.apk
+          build-info.md
+        retention-days: 90
+
+    - name: Upload to GitHub Release
+      if: github.event.inputs.create_tag == 'true' && github.event.inputs.version_name != ''
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version_name }}
+        name: Archaeology Field Documentation v${{ github.event.inputs.version_name }}
+        body_path: build-info.md
+        files: |
+          app/build/outputs/apk/${{ github.event.inputs.release_type }}/*.apk
+        draft: false
+        prerelease: false

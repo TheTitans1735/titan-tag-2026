@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Data extraction rules -->
+    <string name="skip_backup_sharedpref_files">shared_prefs/*.xml</string>
+</resources>

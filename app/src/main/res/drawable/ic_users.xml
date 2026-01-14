@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    
+    <!-- Users icon -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M16,4 C16,5.1 15.1,6 14,6 C12.9,6 12,5.1 12,4 C12,2.9 12.9,2 14,2 C15.1,2 16,2.9 16,4 Z M14,8 C11.8,8 10,9.8 10,12 L10,22 L18,22 L18,12 C18,9.8 16.2,8 14,8 Z M6,8 C4.3,8 3,9.3 3,11 L3,22 L9,22 L9,11 C9,9.3 7.7,8 6,8 Z" />
+</vector>

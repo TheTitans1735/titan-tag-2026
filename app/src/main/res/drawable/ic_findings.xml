@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    
+    <!-- Findings icon -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,2 C10.9,2 10,2.9 10,4 L10,10 L4,10 C2.9,10 2,10.9 2,12 L2,20 C2,21.1 2.9,22 4,22 L20,22 C21.1,22 22,21.1 22,20 L22,12 C22,10.9 21.1,10 20,10 L14,10 L14,4 C14,2.9 13.1,2 12,2 Z M4,12 L20,12 L20,20 L4,20 L4,12 Z" />
+</vector>

@@ -1,0 +1,46 @@
+detekt {
+    toolVersion = "1.23.3"
+    config = files("$projectDir/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+    autoCorrect = true
+    
+    source = files(
+        "src/main/java",
+        "src/main/kotlin",
+        "src/test/java",
+        "src/test/kotlin"
+    )
+    
+    reports {
+        html {
+            required.set(true)
+            outputLocation.set(file("build/reports/detekt/detekt.html"))
+        }
+        xml {
+            required.set(true)
+            outputLocation.set(file("build/reports/detekt/detekt.xml"))
+        }
+        txt {
+            required.set(false)
+            outputLocation.set(file("build/reports/detekt/detekt.txt"))
+        }
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "archaeology-field-documentation"
+        property "sonar.projectName", "Archaeology Field Documentation"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.organization", "your-organization"
+        property "sonar.java.binaries", "build/tmp/kotlin-classes"
+        property "sonar.java.source", "src/main/java"
+        property "sonar.kotlin.source", "src/main/kotlin"
+        property "sonar.tests", "src/test/java,src/test/kotlin"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+    }
+}
+
+tasks.detekt.jvmArgs(
+    "-Xmx2g"
+)

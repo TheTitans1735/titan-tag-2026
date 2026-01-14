@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    
+    <!-- Dashboard icon -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M3,13 L9,13 L9,3 L3,3 L3,13 Z M3,21 L9,21 L9,15 L3,15 L3,21 Z M11,21 L21,21 L21,11 L11,11 L11,21 Z M11,3 L11,9 L21,9 L21,3 L11,3 Z" />
+</vector>

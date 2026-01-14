@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- RTL and Hebrew support -->
+    <bool name="is_rtl">true</bool>
+    
+    <!-- App strings in Hebrew -->
+    <string name="app_name">תיעוד שדה ארכיאולוגי</string>
+    
+    <!-- Navigation -->
+    <string name="nav_dashboard">לוח בקרה</string>
+    <string name="nav_findings">ממצאים</string>
+    <string name="nav_sites">אתרים</string>
+    <string name="nav_users">משתמשים</string>
+    <string name="nav_settings">הגדרות</string>
+    
+    <!-- Common actions -->
+    <string name="action_scan">סרוק</string>
+    <string name="action_scan_qr">סרוק QR</string>
+    <string name="action_scan_barcode">סרוק ברקוד</string>
+    <string name="action_save">שמור</string>
+    <string name="action_cancel">בטל</string>
+    <string name="action_delete">מחק</string>
+    <string name="action_edit">ערוך</string>
+    <string name="action_add">הוסף</string>
+    <string name="action_camera">מצלמה</string>
+    <string name="action_voice">הקלטה קולית</string>
+    <string name="action_export">ייצא</string>
+    <string name="action_import">ייבא</string>
+    
+    <!-- User roles -->
+    <string name="role_admin">מנהל</string>
+    <string name="role_worker">עובד</string>
+    
+    <!-- Form fields -->
+    <string name="field_email">דואר אלקטרוני</string>
+    <string name="field_name">שם</string>
+    <string name="field_site_name">שם אתר</string>
+    <string name="field_location_gps">מיקום GPS</string>
+    <string name="field_area">אזור</string>
+    <string name="field_layer">שכבה</string>
+    <string name="field_description">תיאור</string>
+    <string name="field_voice_transcription">תמלול קולי</string>
+    <string name="field_finding_id">מזהה ממצא</string>
+    <string name="field_date_created">תאריך יצירה</string>
+    
+    <!-- Messages -->
+    <string name="msg_permission_required">נדרשת הרשאה</string>
+    <string name="msg_permission_camera">נדרשת הרשאת מצלמה</string>
+    <string name="msg_permission_location">נדרשת הרשאת מיקום</string>
+    <string name="msg_permission_microphone">נדרשת הרשאת מיקרופון</string>
+    <string name="msg_saved">נשמר בהצלחה</string>
+    <string name="msg_deleted">נמחק בהצלחה</string>
+    <string name="msg_error">שגיאה</string>
+    <string name="msg_loading">טוען...</string>
+    <string name="msg_no_data">אין נתונים</string>
+    <string name="msg_scan_new">מזהה חדש, יוצר רישום חדש</string>
+    <string name="msg_scan_existing">מזהה קיים, פותח לעריכה</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_title">לוח בקרה</string>
+    <string name="dashboard_total_findings">סך הממצאים</string>
+    <string name="dashboard_total_sites">סך האתרים</string>
+    <string name="dashboard_findings_per_site">ממצאים לפי אתר</string>
+    
+    <!-- Finding details -->
+    <string name="finding_new_title">ממצא חדש</string>
+    <string name="finding_edit_title">עריכת ממצא</string>
+    <string name="finding_photos_title">תמונות</string>
+    
+    <!-- Site management -->
+    <string name="site_new_title">אתר חדש</string>
+    <string name="site_edit_title">עריכת אתר</string>
+    
+    <!-- User management -->
+    <string name="user_new_title">משתמש חדש</string>
+    <string name="user_edit_title">עריכת משתמש</string>
+    <string name="user_assigned_site">אתר מוקצה</string>
+    
+    <!-- Export/Import -->
+    <string name="export_title">ייצוא נתונים</string>
+    <string name="import_title">ייבוא נתונים</string>
+    <string name="export_success">יוצא בהצלחה</string>
+    <string name="import_success">יובא בהצלחה</string>
+</resources>
