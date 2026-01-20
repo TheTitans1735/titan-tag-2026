@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ff69b4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TITANTAG - מערכת ארכיאולוגיה</title>
+    <!-- ספריית סריקת QR -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ff69b4, #ffb6c1);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: #d1477a;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        label {
+            font-weight: bold;
+            color: #d1477a;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 2px solid #ffb6c1;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        button {
+            background: #ff69b4;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #d1477a;
+        }
+        .hidden {
+            display: none;
+        }
+        .main-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .menu-button {
+            background: #ffb6c1;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .menu-button:hover {
+            background: #ff69b4;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>שלום TITANTAG</h1>
+        <h2 style="text-align: center; color: #d1477a; margin-bottom: 2rem;">מערכת ארכיאולוגיה שטח</h2>
+        
+        <!-- מסך כניסה -->
+        <div id="loginScreen" class="login-form">
+            <div class="form-group">
+                <label for="userName">שם מלא:</label>
+                <input type="text" id="userName" placeholder="הכנס שם מלא">
+            </div>
+            <div class="form-group">
+                <label for="userEmail">אימייל:</label>
+                <input type="email" id="userEmail" placeholder="הכנס אימייל">
+            </div>
+            <div class="form-group">
+                <label for="userRole">תפקיד:</label>
+                <select id="userRole">
+                    <option value="">בחר תפקיד</option>
+                    <option value="מנהל">מנהל</option>
+                    <option value="עובד">עובד</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="userSite">אתר משויך:</label>
+                <select id="userSite" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
+                    <option value="">בחר אתר</option>
+                    <option value="מצדה">מצדה</option>
+                    <option value="יריחו">יריחו</option>
+                    <option value="בית שאן">בית שאן</option>
+                    <option value="קיסריה">קיסריה</option>
+                    <option value="תל מגידו">תל מגידו</option>
+                    <option value="תל לכיש">תל לכיש</option>
+                    <option value="תל באר שבע">תל באר שבע</option>
+                    <option value="חצור">חצור</option>
+                    <option value="גזר">גזר</option>
+                    <option value="דן">דן</option>
+                    <option value="ארד">ארד</option>
+                    <option value="בארות יעקב">בארות יעקב</option>
+                    <option value="תל זרורה">תל זרורה</option>
+                    <option value="תל עירני">תל עירני</option>
+                    <option value="תל אביב עתיקות">תל אביב עתיקות</option>
+                    <option value="יפו העתיקה">יפו העתיקה</option>
+                    <option value="עכו העתיקה">עכו העתיקה</option>
+                    <option value="טבריה העתיקה">טבריה העתיקה</option>
+                    <option value="צפת העתיקה">צפת העתיקה</option>
+                </select>
+            </div>
+            <button onclick="login()">כניסה למערכת</button>
+        </div>
+        
+        <!-- מסך ראשי -->
+        <div id="mainScreen" class="hidden">
+            <div id="userInfo"></div>
+            <div class="main-menu">
+                <button class="menu-button" onclick="showAddFind()">הוסף ממצא</button>
+                <button class="menu-button" onclick="showScanQR()">סרוק ברקוד/QR</button>
+                <button class="menu-button" onclick="showFindList()">רשימת ממצאים</button>
+                <button class="menu-button" onclick="showSites()">ניהול אתרים</button>
+                <button class="menu-button" onclick="logout()">יציאה</button>
+            </div>
+        </div>
+        
+        <!-- מסף הוספת ממצא -->
+        <div id="addFindScreen" class="hidden">
+            <h3>הוספת ממצא חדש</h3>
+            <div class="form-group">
+                <label for="findPlot">חלקה:</label>
+                <select id="findPlot" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
+                    <option value="">בחר חלקה</option>
+                    <option value="א">א</option>
+                    <option value="ב">ב</option>
+                    <option value="ג">ג</option>
+                    <option value="ד">ד</option>
+                    <option value="ה">ה</option>
+                    <option value="ו">ו</option>
+                    <option value="ז">ז</option>
+                    <option value="ח">ח</option>
+                    <option value="ט">ט</option>
+                    <option value="י">י</option>
+                    <option value="יא">יא</option>
+                    <option value="יב">יב</option>
+                    <option value="יג">יג</option>
+                    <option value="יד">יד</option>
+                    <option value="טו">טו</option>
+                    <option value="טז">טז</option>
+                    <option value="יז">יז</option>
+                    <option value="יח">יח</option>
+                    <option value="יט">יט</option>
+                    <option value="כ">כ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="findLayer">שכבה:</label>
+                <select id="findLayer" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
+                    <option value="">בחר שכבה</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="findDescription">תיאור:</label>
+                <textarea id="findDescription" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="findLocation">מיקום:</label>
+                <input type="text" id="findLocation" readonly>
+            </div>
+            <div class="form-group">
+                <label>תמונות:</label>
+                <input type="file" id="findImages" multiple accept="image/*" capture="environment">
+            </div>
+            <button onclick="saveFind()">שמור ממצא</button>
+            <button onclick="showMainMenu()">חזור לתפריט ראשי</button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        
+        function login() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            const role = document.getElementById('userRole').value;
+            const site = document.getElementById('userSite').value;
+            
+            if (!name || !email || !role || !site) {
+                alert('נא למלא את כל השדות');
+                return;
+            }
+            
+            currentUser = { name, email, role, site };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showMainMenu();
+            updateUserInfo();
+        }
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainScreen').classList.add('hidden');
+        }
+        
+        function showMainMenu() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('addFindScreen').classList.add('hidden');
+        }
+        
+        function showAddFind() {
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('addFindScreen').classList.remove('hidden');
+            getCurrentLocation();
+        }
+        
+        function showScanQR() {
+            // בדיקת HTTPS
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                alert('סריקת QR דורשת חיבור HTTPS. אנא השתמש בכתובת HTTPS.');
+                return;
+            }
+            
+            // בדיקת זמינות הספרייה
+            if (typeof Html5QrcodeScanner === 'undefined') {
+                alert('ספריית סריקת QR לא נטענה כראוי. אנא רענן את הדף.');
+                return;
+            }
+            
+            // בדיקת תמיכה במצלמה
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('הדפדפן שלך לא תומך בגישה למצלמה.');
+                return;
+            }
+            
+            startQRScanner();
+        }
+        
+        // פונקציות סריקת QR
+        let html5QrcodeScanner = null;
+
+        function startQRScanner() {
+            try {
+                // יצירת ממשק סורק
+                const scannerDiv = document.createElement('div');
+                scannerDiv.id = 'qr-reader';
+                scannerDiv.style.position = 'fixed';
+                scannerDiv.style.top = '0';
+                scannerDiv.style.left = '0';
+                scannerDiv.style.width = '100%';
+                scannerDiv.style.height = '100%';
+                scannerDiv.style.backgroundColor = 'white';
+                scannerDiv.style.zIndex = '1000';
+                scannerDiv.style.direction = 'ltr'; // חשוב לסורק
+                document.body.appendChild(scannerDiv);
+                
+                // הוספת כפתור סגירה לפני הסורק
+                const closeButton = document.createElement('button');
+                closeButton.textContent = '✕ סגור';
+                closeButton.style.position = 'fixed';
+                closeButton.style.top = '10px';
+                closeButton.style.right = '10px';
+                closeButton.style.zIndex = '1002';
+                closeButton.style.padding = '10px 15px';
+                closeButton.style.backgroundColor = '#ff69b4';
+                closeButton.style.color = 'white';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.cursor = 'pointer';
+                closeButton.style.fontSize = '16px';
+                closeButton.style.fontWeight = 'bold';
+                closeButton.onclick = stopQRScanner;
+                document.body.appendChild(closeButton);
+                
+                // יצירת הסורק
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "qr-reader", 
+                    { 
+                        fps: 10, 
+                        qrbox: {width: 250, height: 250},
+                        supportedScanTypes: [0] // סריקת מצלמה בלבד
+                    }
+                );
+                
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                
+            } catch (error) {
+                console.error('שגיאה באתחול סורק QR:', error);
+                alert('לא הצלחנו להפעיל את מצלמת הסריקה: ' + error.message);
+                stopQRScanner();
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log('קוד QR נסרק בהצלחה:', decodedText);
+            stopQRScanner();
+            
+            // הצגת התוצאה
+            if (decodedText.startsWith('FIND-')) {
+                const findId = decodedText.replace('FIND-', '');
+                showFindDetailsModal(findId);
+            } else {
+                showFindDetailsModal(decodedText);
+            }
+        }
+
+        function onScanFailure(error) {
+            // מתעלם משגיאות סריקה רגילות - זה תקין
+            // console.log('סריקה נכשלה:', error);
+        }
+
+        function stopQRScanner() {
+            try {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+            } catch (error) {
+                console.error('שגיאה בסגירת סורק:', error);
+            }
+            
+            // ניקוי כל האלמנטים
+            const elements = ['qr-reader', 'button[onclick="stopQRScanner()"]'];
+            elements.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => el.remove());
+            });
+        }
+
+        function showFindDetailsModal(findId) {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            
+            const content = document.createElement('div');
+            content.style.backgroundColor = 'white';
+            content.style.padding = '2rem';
+            content.style.borderRadius = '15px';
+            content.style.maxWidth = '500px';
+            content.style.textAlign = 'right';
+            content.innerHTML = `
+                <h2>ממצא #${findId}</h2>
+                <p>פרטי הממצא יוצגו כאן לאחר התחברות למסד הנתונים</p>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: #ff69b4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-top: 1rem;">סגור</button>
+            `;
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+        
+        function showFindList() {
+            alert('רשימת ממצאים תיושם בהמשך');
+        }
+        
+        function showSites() {
+            if (currentUser.role !== 'מנהל') {
+                alert('רק מנהל יכול לנהל אתרים');
+                return;
+            }
+            alert('ניהול אתרים ייושם בהמשך');
+        }
+        
+        function updateUserInfo() {
+            if (currentUser) {
+                document.getElementById('userInfo').innerHTML = 
+                    `<p><strong>משתמש:</strong> ${currentUser.name}</p>
+                     <p><strong>תפקיד:</strong> ${currentUser.role}</p>
+                     <p><strong>אתר:</strong> ${currentUser.site}</p>`;
+            }
+        }
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('findLocation').value = `${lat}, ${lng}`;
+                    },
+                    error => {
+                        // אם לא מצא מיקום, נציב מיקום ברירת מחדל בישראל
+                        document.getElementById('findLocation').value = '31.7683, 35.2137'; // ירושלים
+                    }
+                );
+            } else {
+                // אם הדפדפן לא תומך ב-GPS, נציב מיקום ברירת מחדל בישראל
+                document.getElementById('findLocation').value = '31.7683, 35.2137'; // ירושלים
+            }
+        }
+        
+        function saveFind() {
+            const site = currentUser.site;
+            const plot = document.getElementById('findPlot').value;
+            const layer = document.getElementById('findLayer').value;
+            const description = document.getElementById('findDescription').value;
+            const location = document.getElementById('findLocation').value;
+            
+            if (!plot || !layer || !description) {
+                alert('נא למלא את כל השדות החובה');
+                return;
+            }
+            
+            // יצירת מזהה ייחודי לממצא
+            const findId = 'FIND-' + Date.now();
+            
+            // כאן יתווסף קוד שמירה ל-Google Sheets
+            
+            // הצגת קוד QR לממצא
+            showFindQRCode(findId);
+            
+            alert('הממצא נשמר בהצלחה!\nמזהה ממצא: ' + findId);
+            showMainMenu();
+        }
+        
+        function showFindQRCode(findId) {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            
+            const content = document.createElement('div');
+            content.style.backgroundColor = 'white';
+            content.style.padding = '2rem';
+            content.style.borderRadius = '15px';
+            content.style.maxWidth = '400px';
+            content.style.textAlign = 'center';
+            content.innerHTML = `
+                <h2>קוד QR לממצא</h2>
+                <p style="font-size: 18px; font-weight: bold; color: #d1477a; margin: 1rem 0;">${findId}</p>
+                <div style="width: 200px; height: 200px; margin: 1rem auto; border: 2px solid #ff69b4; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f0f0f0;">
+                    <span style="color: #666; font-size: 14px;">קוד QR<br>יווצר כאן<br>לאחר החיבור<br>למסד הנתונים</span>
+                </div>
+                <p style="color: #666; font-size: 14px;">שמור את המזהה או צלם את הקוד</p>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: #ff69b4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-top: 1rem;">סגור</button>
+            `;
+            
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+        
+        // בדיקה אם יש משתמש שמור
+        window.onload = function() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainMenu();
+                updateUserInfo();
+            }
+        };
+    </script>
+</body>
+</html>
