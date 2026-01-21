@@ -96,7 +96,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>שלום TITANTAG</h1>
+        <h1>שלום TitanTag</h1>
         <h2 style="text-align: center; color: #d1477a; margin-bottom: 2rem;">מערכת ארכיאולוגיה שטח</h2>
         
         <!-- מסך כניסה -->
@@ -222,10 +222,65 @@
             </div>
             <div class="form-group">
                 <label>תמונות:</label>
-                <input type="file" id="findImages" multiple accept="image/*" capture="environment">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button type="button" onclick="captureImage()" style="display: flex; align-items: center; gap: 5px; padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        📷 צלם תמונה
+                    </button>
+                    <button type="button" onclick="selectImages()" style="display: flex; align-items: center; gap: 5px; padding: 8px 16px; background: #4ecdc4; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        📁 הוסף תמונה
+                    </button>
+                </div>
+                <input type="file" id="findImages" multiple accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelect(event)">
+                <input type="file" id="selectImages" multiple accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                <div id="imageThumbnails" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
             </div>
-            <button onclick="saveFind()">שמור ממצא</button>
-            <button onclick="showMainMenu()">חזור לתפריט ראשי</button>
+            <style>
+                .thumbnail {
+                    position: relative;
+                    width: 80px;
+                    height: 80px;
+                    border: 2px solid #ffb6c1;
+                    border-radius: 8px;
+                    overflow: hidden;
+                }
+                .thumbnail img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .delete-btn {
+                    position: absolute;
+                    top: 2px;
+                    right: 2px;
+                    background: rgba(255, 0, 0, 0.8);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                }
+            </style>
+            <div style="position: relative; min-height: 60px;">
+                <button onclick="showMainMenu()" style="position: absolute; left: 0; top: 0; background: none; border: none; font-size: 24px; cursor: pointer;">🏠</button>
+                <button onclick="saveFind()" style="position: absolute; right: 0; bottom: 0; padding: 10px 20px; background: #4ecdc4; color: white; border: none; border-radius: 8px; cursor: pointer;">שמירה</button>
+            </div>
+        </div>
+        
+        <!-- מסך רשימת ממצאים -->
+        <div id="findListScreen" class="hidden">
+            <div style="position: relative; min-height: 60px;">
+                <button onclick="showMainMenu()" style="position: absolute; left: 0; top: 0; background: none; border: none; font-size: 24px; cursor: pointer;">🏠</button>
+                <h3 style="margin: 0; text-align: center;">רשימת ממצאים</h3>
+            </div>
+            <div id="findListContainer" style="margin-top: 20px;">
+                <!-- הממצאים יוצגו כאן -->
+            </div>
         </div>
     </div>
 
@@ -257,16 +312,43 @@
             document.getElementById('mainScreen').classList.add('hidden');
         }
         
+        function updateWelcomeTitle() {
+            if (currentUser && currentUser.name) {
+                document.querySelector('h1').textContent = `שלום ${currentUser.name}`;
+            }
+        }
+        
         function showMainMenu() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.remove('hidden');
             document.getElementById('addFindScreen').classList.add('hidden');
+            document.getElementById('findListScreen').classList.add('hidden');
+            updateWelcomeTitle();
+        }
+        
+        function updateWelcomeTitle() {
+            if (currentUser && currentUser.name) {
+                document.querySelector('h1').textContent = `שלום ${currentUser.name}`;
+            }
+        }
+        
+        function showAddFind() {
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('addFindScreen').classList.remove('hidden');
+            document.getElementById('findListScreen').classList.add('hidden');
+            getCurrentLocation();
+            capturedImages = [];
+            document.getElementById('imageThumbnails').innerHTML = '';
+            updateWelcomeTitle();
         }
         
         function showAddFind() {
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('addFindScreen').classList.remove('hidden');
             getCurrentLocation();
+            capturedImages = [];
+            document.getElementById('imageThumbnails').innerHTML = '';
+            updateWelcomeTitle();
         }
         
         function showScanQR() {
@@ -288,6 +370,9 @@
                 return;
             }
             
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('findListScreen').classList.add('hidden');
+            updateWelcomeTitle();
             startQRScanner();
         }
         
@@ -412,7 +497,118 @@
         }
         
         function showFindList() {
-            alert('רשימת ממצאים תיושם בהמשך');
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('addFindScreen').classList.add('hidden');
+            document.getElementById('findListScreen').classList.remove('hidden');
+            updateWelcomeTitle();
+            loadFindList();
+        }
+        
+        function loadFindList() {
+            // אתחול רשימת ממצאים אם לא קיימת
+            if (!window.allFinds) {
+                window.allFinds = [
+                    // נתוני דוגמה - במציאות אלו יגיעו ממסד הנתונים
+                    {
+                        id: 'FIND-1',
+                        site: 'מצדה',
+                        plot: 'א',
+                        layer: '2',
+                        description: 'רסיסי חרס מתקופת בית שני',
+                        location: '31.3167, 35.3667',
+                        date: '21/01/2026'
+                    },
+                    {
+                        id: 'FIND-2',
+                        site: 'יריחו',
+                        plot: 'ב',
+                        layer: '3',
+                        description: 'כלי צור מהתקופה הנאוליתית',
+                        location: '31.8667, 35.4333',
+                        date: '21/01/2026'
+                    },
+                    {
+                        id: 'FIND-3',
+                        site: 'בית שאן',
+                        plot: 'ג',
+                        layer: '1',
+                        description: 'מטבעות מהתקופה הרומית',
+                        location: '32.5000, 35.5000',
+                        date: '20/01/2026'
+                    }
+                ];
+            }
+            
+            const container = document.getElementById('findListContainer');
+            container.innerHTML = '';
+            
+            if (window.allFinds.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">לא נמצאו ממצאים</p>';
+                return;
+            }
+            
+            // מיון הממצאים לפי תאריך (החדשים ביותר ראשונים)
+            const sortedFinds = [...window.allFinds].reverse();
+            
+            sortedFinds.forEach(find => {
+                const findCard = document.createElement('div');
+                findCard.className = 'find-card';
+                findCard.style.cssText = `
+                    background: white;
+                    border: 2px solid #ffb6c1;
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                    cursor: pointer;
+                    transition: transform 0.2s;
+                `;
+                findCard.onmouseover = () => findCard.style.transform = 'translateY(-2px)';
+                findCard.onmouseout = () => findCard.style.transform = 'translateY(0)';
+                findCard.onclick = () => editFind(find);
+                
+                findCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 10px 0; color: #d1477a;">${find.id}</h4>
+                            <p style="margin: 5px 0;"><strong>אתר:</strong> ${find.site}</p>
+                            <p style="margin: 5px 0;"><strong>חלקה:</strong> ${find.plot} | <strong>שכבה:</strong> ${find.layer}</p>
+                            <p style="margin: 5px 0;"><strong>תיאור:</strong> ${find.description}</p>
+                            <p style="margin: 5px 0; font-size: 12px; color: #666;"><strong>תאריך:</strong> ${find.date}</p>
+                            ${find.images && find.images.length > 0 ? `<p style="margin: 5px 0; font-size: 12px; color: #666;"><strong>תמונות:</strong> ${find.images.length}</p>` : ''}
+                        </div>
+                        <div style="background: #ffb6c1; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
+                            ${find.site}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(findCard);
+            });
+        }
+        
+        function editFind(find) {
+            // העבר למסך הוספת ממצא עם הנתונים של הממצא
+            showAddFind();
+            
+            // מלא את השדות עם נתוני הממצא
+            document.getElementById('findPlot').value = find.plot;
+            document.getElementById('findLayer').value = find.layer;
+            document.getElementById('findDescription').value = find.description;
+            document.getElementById('findLocation').value = find.location;
+            
+            // נקה את התמונות הקיימות
+            capturedImages = [];
+            document.getElementById('imageThumbnails').innerHTML = '';
+        }
+        
+        function showSites() {
+            updateWelcomeTitle();
+            if (currentUser.role !== 'מנהל') {
+                alert('רק מנהל יכול לנהל אתרים');
+                return;
+            }
+            
+            alert('ניהול אתרים ייושם בהמשך');
         }
         
         function showSites() {
@@ -451,6 +647,95 @@
             }
         }
         
+        let capturedImages = [];
+        
+        function captureImage() {
+            const input = document.getElementById('findImages');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        }
+        
+        function selectImages() {
+            const input = document.getElementById('selectImages');
+            input.click();
+        }
+        
+        function handleImageSelect(event) {
+            const files = event.target.files;
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageData = {
+                            name: file.name,
+                            url: e.target.result,
+                            file: file
+                        };
+                        capturedImages.push(imageData);
+                        addThumbnail(imageData, capturedImages.length - 1);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            event.target.value = '';
+        }
+        
+        function addThumbnail(imageData, index) {
+            const container = document.getElementById('imageThumbnails');
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'thumbnail';
+            thumbnail.innerHTML = `
+                <img src="${imageData.url}" alt="${imageData.name}" onclick="showImage('${imageData.url}', '${imageData.name}')" style="cursor: pointer;">
+                <button class="delete-btn" onclick="deleteImage(${index})">×</button>
+            `;
+            container.appendChild(thumbnail);
+        }
+        
+        function showImage(imageUrl, imageName) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            `;
+            
+            modal.appendChild(img);
+            modal.onclick = () => modal.remove();
+            document.body.appendChild(modal);
+        }
+        
+        function deleteImage(index) {
+            if (confirm('הקובץ ימחק רוצה להמשיך?')) {
+                capturedImages.splice(index, 1);
+                refreshThumbnails();
+            }
+        }
+        
+        function refreshThumbnails() {
+            const container = document.getElementById('imageThumbnails');
+            container.innerHTML = '';
+            capturedImages.forEach((imageData, index) => {
+                addThumbnail(imageData, index);
+            });
+        }
+        
         function saveFind() {
             const site = currentUser.site;
             const plot = document.getElementById('findPlot').value;
@@ -465,6 +750,24 @@
             
             // יצירת מזהה ייחודי לממצא
             const findId = 'FIND-' + Date.now();
+            
+            // יצירת אובייקט ממצא חדש
+            const newFind = {
+                id: findId,
+                site: site,
+                plot: plot,
+                layer: layer,
+                description: description,
+                location: location,
+                date: new Date().toLocaleDateString('he-IL'),
+                images: capturedImages.map(img => ({ name: img.name, url: img.url }))
+            };
+            
+            // הוספת הממצא לרשימה הגלובלית
+            if (!window.allFinds) {
+                window.allFinds = [];
+            }
+            window.allFinds.push(newFind);
             
             // כאן יתווסף קוד שמירה ל-Google Sheets
             
@@ -517,6 +820,32 @@
                 updateUserInfo();
             }
         };
+        
+        // טיפול בלחיצת כפתור "חזור" בטלפון
+        window.addEventListener('popstate', function(event) {
+            event.preventDefault();
+            goBack();
+        });
+        
+        function goBack() {
+            const mainScreen = document.getElementById('mainScreen');
+            const addFindScreen = document.getElementById('addFindScreen');
+            const findListScreen = document.getElementById('findListScreen');
+            
+            if (!addFindScreen.classList.contains('hidden')) {
+                showMainMenu();
+            } else if (!findListScreen.classList.contains('hidden')) {
+                showMainMenu();
+            } else {
+                // אם אנחנו במסך הראשי, אפשר לצאת מהאפליקציה
+                if (confirm('האם ברצונך לצאת מהאפליקציה?')) {
+                    window.history.back();
+                }
+            }
+        }
+        
+        // הוספת תמיכה בכפתור "חזור" של אנדרואיד
+        document.addEventListener('backbutton', goBack);
     </script>
 </body>
 </html>
