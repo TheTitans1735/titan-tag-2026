@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TITANTAG - מערכת ארכיאולוגיה</title>
-    <!-- ספריית סריקת QR -->
+    
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * {
@@ -99,7 +99,7 @@
         <h1>שלום TitanTag</h1>
         <h2 style="text-align: center; color: #d1477a; margin-bottom: 2rem;">מערכת ארכיאולוגיה שטח</h2>
         
-        <!-- מסך כניסה -->
+        
         <div id="loginScreen" class="login-form">
             <div class="form-group">
                 <label for="userName">שם מלא:</label>
@@ -145,7 +145,7 @@
             <button onclick="login()">כניסה למערכת</button>
         </div>
         
-        <!-- מסך ראשי -->
+        
         <div id="mainScreen" class="hidden">
             <div id="userInfo"></div>
             <div class="main-menu">
@@ -157,7 +157,7 @@
             </div>
         </div>
         
-        <!-- מסף הוספת ממצא -->
+        
         <div id="addFindScreen" class="hidden">
             <h3>הוספת ממצא חדש</h3>
             <div class="form-group">
@@ -272,37 +272,132 @@
             </div>
         </div>
         
-        <!-- מסך רשימת ממצאים -->
+        
         <div id="findListScreen" class="hidden">
             <div style="position: relative; min-height: 60px;">
                 <button onclick="showMainMenu()" style="position: absolute; left: 0; top: 0; background: none; border: none; font-size: 24px; cursor: pointer;">🏠</button>
                 <h3 style="margin: 0; text-align: center;">רשימת ממצאים</h3>
             </div>
             <div id="findListContainer" style="margin-top: 20px;">
-                <!-- הממצאים יוצגו כאן -->
+                
+            </div>
+        </div>
+        
+        
+        <div id="editFindScreen" class="hidden">
+            <div style="position: relative; min-height: 60px;">
+                <button onclick="goBackToFindList()" style="position: absolute; left: 0; top: 0; background: none; border: none; font-size: 24px; cursor: pointer;">🏠</button>
+                <h3 style="margin: 0; text-align: center;">עריכת ממצא</h3>
+            </div>
+            <div class="form-group">
+                <label for="editFindPlot">חלקה:</label>
+                <select id="editFindPlot" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
+                    <option value="">בחר חלקה</option>
+                    <option value="א">א</option>
+                    <option value="ב">ב</option>
+                    <option value="ג">ג</option>
+                    <option value="ד">ד</option>
+                    <option value="ה">ה</option>
+                    <option value="ו">ו</option>
+                    <option value="ז">ז</option>
+                    <option value="ח">ח</option>
+                    <option value="ט">ט</option>
+                    <option value="י">י</option>
+                    <option value="יא">יא</option>
+                    <option value="יב">יב</option>
+                    <option value="יג">יג</option>
+                    <option value="יד">יד</option>
+                    <option value="טו">טו</option>
+                    <option value="טז">טז</option>
+                    <option value="יז">יז</option>
+                    <option value="יח">יח</option>
+                    <option value="יט">יט</option>
+                    <option value="כ">כ</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editFindLayer">שכבה:</label>
+                <select id="editFindLayer" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
+                    <option value="">בחר שכבה</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editFindDescription">תיאור:</label>
+                <textarea id="editFindDescription" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="editFindLocation">מיקום:</label>
+                <input type="text" id="editFindLocation" readonly>
+            </div>
+            <div class="form-group">
+                <label>תמונות:</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button type="button" onclick="captureEditImage()" style="display: flex; align-items: center; gap: 5px; padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        📷 צלם תמונה
+                    </button>
+                    <button type="button" onclick="selectEditImages()" style="display: flex; align-items: center; gap: 5px; padding: 8px 16px; background: #4ecdc4; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        📁 הוסף תמונה
+                    </button>
+                </div>
+                <input type="file" id="editFindImages" multiple accept="image/*" capture="environment" style="display: none;" onchange="handleEditImageSelect(event)">
+                <input type="file" id="editSelectImages" multiple accept="image/*" style="display: none;" onchange="handleEditImageSelect(event)">
+                <div id="editImageThumbnails" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+            </div>
+            <div style="position: relative; min-height: 60px;">
+                <button onclick="updateFind()" style="position: absolute; right: 0; bottom: 0; padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 8px; cursor: pointer;">עדכון</button>
             </div>
         </div>
     </div>
-
     <script>
         let currentUser = null;
         
         function login() {
-            const name = document.getElementById('userName').value;
-            const email = document.getElementById('userEmail').value;
-            const role = document.getElementById('userRole').value;
-            const site = document.getElementById('userSite').value;
-            
-            if (!name || !email || !role || !site) {
-                alert('נא למלא את כל השדות');
-                return;
+            try {
+                console.log('Login function started');
+                const name = document.getElementById('userName').value;
+                const email = document.getElementById('userEmail').value;
+                const role = document.getElementById('userRole').value;
+                const site = document.getElementById('userSite').value;
+                
+                console.log('Form values:', { name, email, role, site });
+                
+                if (!name || !email || !role || !site) {
+                    alert('נא למלא את כל השדות');
+                    return;
+                }
+                
+                currentUser = { name, email, role, site };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                console.log('About to show main menu');
+                showMainMenu();
+                console.log('About to update user info');
+                updateUserInfo();
+                console.log('Login completed successfully');
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('שגיאה בהתחברות: ' + error.message);
             }
-            
-            currentUser = { name, email, role, site };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            showMainMenu();
-            updateUserInfo();
         }
         
         function logout() {
@@ -323,48 +418,41 @@
             document.getElementById('mainScreen').classList.remove('hidden');
             document.getElementById('addFindScreen').classList.add('hidden');
             document.getElementById('findListScreen').classList.add('hidden');
+            document.getElementById('editFindScreen').classList.add('hidden');
             updateWelcomeTitle();
-        }
-        
-        function updateWelcomeTitle() {
-            if (currentUser && currentUser.name) {
-                document.querySelector('h1').textContent = `שלום ${currentUser.name}`;
-            }
         }
         
         function showAddFind() {
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('addFindScreen').classList.remove('hidden');
             document.getElementById('findListScreen').classList.add('hidden');
+            document.getElementById('editFindScreen').classList.add('hidden');
+            
+            // Reset all fields
+            document.getElementById('findPlot').value = '';
+            document.getElementById('findLayer').value = '';
+            document.getElementById('findDescription').value = '';
             getCurrentLocation();
             capturedImages = [];
             document.getElementById('imageThumbnails').innerHTML = '';
             updateWelcomeTitle();
         }
         
-        function showAddFind() {
-            document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('addFindScreen').classList.remove('hidden');
-            getCurrentLocation();
-            capturedImages = [];
-            document.getElementById('imageThumbnails').innerHTML = '';
-            updateWelcomeTitle();
-        }
         
         function showScanQR() {
-            // בדיקת HTTPS
+            // Check HTTPS
             if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
                 alert('סריקת QR דורשת חיבור HTTPS. אנא השתמש בכתובת HTTPS.');
                 return;
             }
             
-            // בדיקת זמינות הספרייה
+            
             if (typeof Html5QrcodeScanner === 'undefined') {
                 alert('ספריית סריקת QR לא נטענה כראוי. אנא רענן את הדף.');
                 return;
             }
             
-            // בדיקת תמיכה במצלמה
+            
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 alert('הדפדפן שלך לא תומך בגישה למצלמה.');
                 return;
@@ -376,12 +464,11 @@
             startQRScanner();
         }
         
-        // פונקציות סריקת QR
+        
         let html5QrcodeScanner = null;
-
         function startQRScanner() {
             try {
-                // יצירת ממשק סורק
+                
                 const scannerDiv = document.createElement('div');
                 scannerDiv.id = 'qr-reader';
                 scannerDiv.style.position = 'fixed';
@@ -391,10 +478,10 @@
                 scannerDiv.style.height = '100%';
                 scannerDiv.style.backgroundColor = 'white';
                 scannerDiv.style.zIndex = '1000';
-                scannerDiv.style.direction = 'ltr'; // חשוב לסורק
+                scannerDiv.style.direction = 'ltr'; 
                 document.body.appendChild(scannerDiv);
                 
-                // הוספת כפתור סגירה לפני הסורק
+                
                 const closeButton = document.createElement('button');
                 closeButton.textContent = '✕ סגור';
                 closeButton.style.position = 'fixed';
@@ -412,13 +499,13 @@
                 closeButton.onclick = stopQRScanner;
                 document.body.appendChild(closeButton);
                 
-                // יצירת הסורק
+                
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "qr-reader", 
                     { 
                         fps: 10, 
                         qrbox: {width: 250, height: 250},
-                        supportedScanTypes: [0] // סריקת מצלמה בלבד
+                        supportedScanTypes: [0] 
                     }
                 );
                 
@@ -430,12 +517,11 @@
                 stopQRScanner();
             }
         }
-
         function onScanSuccess(decodedText, decodedResult) {
             console.log('קוד QR נסרק בהצלחה:', decodedText);
             stopQRScanner();
             
-            // הצגת התוצאה
+            
             if (decodedText.startsWith('FIND-')) {
                 const findId = decodedText.replace('FIND-', '');
                 showFindDetailsModal(findId);
@@ -443,12 +529,10 @@
                 showFindDetailsModal(decodedText);
             }
         }
-
         function onScanFailure(error) {
-            // מתעלם משגיאות סריקה רגילות - זה תקין
-            // console.log('סריקה נכשלה:', error);
+            
+            
         }
-
         function stopQRScanner() {
             try {
                 if (html5QrcodeScanner) {
@@ -459,14 +543,13 @@
                 console.error('שגיאה בסגירת סורק:', error);
             }
             
-            // ניקוי כל האלמנטים
+            
             const elements = ['qr-reader', 'button[onclick="stopQRScanner()"]'];
             elements.forEach(selector => {
                 const elements = document.querySelectorAll(selector);
                 elements.forEach(el => el.remove());
             });
         }
-
         function showFindDetailsModal(findId) {
             const modal = document.createElement('div');
             modal.style.position = 'fixed';
@@ -500,15 +583,16 @@
             document.getElementById('mainScreen').classList.add('hidden');
             document.getElementById('addFindScreen').classList.add('hidden');
             document.getElementById('findListScreen').classList.remove('hidden');
+            document.getElementById('editFindScreen').classList.add('hidden');
             updateWelcomeTitle();
             loadFindList();
         }
         
         function loadFindList() {
-            // אתחול רשימת ממצאים אם לא קיימת
+            
             if (!window.allFinds) {
                 window.allFinds = [
-                    // נתוני דוגמה - במציאות אלו יגיעו ממסד הנתונים
+                    
                     {
                         id: 'FIND-1',
                         site: 'מצדה',
@@ -516,7 +600,11 @@
                         layer: '2',
                         description: 'רסיסי חרס מתקופת בית שני',
                         location: '31.3167, 35.3667',
-                        date: '21/01/2026'
+                        date: '21/01/2026',
+                        images: [
+                            { name: 'pottery1.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRkZGNkVDIiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMjAiIGZpbGw9IiNGRjY5QjQiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMTAiIGZpbGw9IiNGRkYiLz4KPHN2Zz4K' },
+                            { name: 'pottery2.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjOTBFRUQ5Ii8+Cjxwb2x5Z29uIHBvaW50cz0iNDAsMjAgNjAsNjAgNDAsNjAgMjAsNjAiIGZpbGw9IiM0RUNEMEMiLz4KPHN2Zz4K' }
+                        ]
                     },
                     {
                         id: 'FIND-2',
@@ -525,7 +613,10 @@
                         layer: '3',
                         description: 'כלי צור מהתקופה הנאוליתית',
                         location: '31.8667, 35.4333',
-                        date: '21/01/2026'
+                        date: '21/01/2026',
+                        images: [
+                            { name: 'stone_tool1.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRERFM0VGNSIvPgo8cGF0aCBkPSJNMTAgNDBMMzAgMjBMNTAgMzBMNzAgNDBMNTAgNTBMMzAgNTBaIiBmaWxsPSIjODc1QTNBIi8+Cjxzdmc+Cg==' }
+                        ]
                     },
                     {
                         id: 'FIND-3',
@@ -534,7 +625,11 @@
                         layer: '1',
                         description: 'מטבעות מהתקופה הרומית',
                         location: '32.5000, 35.5000',
-                        date: '20/01/2026'
+                        date: '20/01/2026',
+                        images: [
+                            { name: 'coin1.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzAiIGZpbGw9IiNGRkQ3MDAiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMjUiIGZpbGw9IiNGRkIiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMTAiIGZpbGw9IiNGRkQ3MDAiLz4KPHN2Zz4K' },
+                            { name: 'coin2.jpg', url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzAiIGZpbGw9IiM4QjQ1MTMiLz4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMjAiIGZpbGw9IiNGRkIiLz4KPHN2Zz4K' }
+                        ]
                     }
                 ];
             }
@@ -547,7 +642,7 @@
                 return;
             }
             
-            // מיון הממצאים לפי תאריך (החדשים ביותר ראשונים)
+            
             const sortedFinds = [...window.allFinds].reverse();
             
             sortedFinds.forEach(find => {
@@ -574,7 +669,19 @@
                             <p style="margin: 5px 0;"><strong>חלקה:</strong> ${find.plot} | <strong>שכבה:</strong> ${find.layer}</p>
                             <p style="margin: 5px 0;"><strong>תיאור:</strong> ${find.description}</p>
                             <p style="margin: 5px 0; font-size: 12px; color: #666;"><strong>תאריך:</strong> ${find.date}</p>
-                            ${find.images && find.images.length > 0 ? `<p style="margin: 5px 0; font-size: 12px; color: #666;"><strong>תמונות:</strong> ${find.images.length}</p>` : ''}
+                            ${find.images && find.images.length > 0 ? `
+                                <div style="margin: 5px 0;">
+                                    <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;"><strong>תמונות:</strong></p>
+                                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                        ${find.images.slice(0, 3).map(img => `
+                                            <div style="width: 40px; height: 40px; border: 1px solid #ffb6c1; border-radius: 4px; overflow: hidden;">
+                                                <img src="${img.url}" alt="${img.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        `).join('')}
+                                        ${find.images.length > 3 ? `<div style="width: 40px; height: 40px; border: 1px solid #ffb6c1; border-radius: 4px; background: #ffb6c1; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold;">+${find.images.length - 3}</div>` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                         <div style="background: #ffb6c1; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
                             ${find.site}
@@ -587,31 +694,121 @@
         }
         
         function editFind(find) {
-            // העבר למסך הוספת ממצא עם הנתונים של הממצא
-            showAddFind();
             
-            // מלא את השדות עם נתוני הממצא
-            document.getElementById('findPlot').value = find.plot;
-            document.getElementById('findLayer').value = find.layer;
-            document.getElementById('findDescription').value = find.description;
-            document.getElementById('findLocation').value = find.location;
+            window.currentEditingFind = find;
             
-            // נקה את התמונות הקיימות
-            capturedImages = [];
-            document.getElementById('imageThumbnails').innerHTML = '';
+            
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('addFindScreen').classList.add('hidden');
+            document.getElementById('findListScreen').classList.add('hidden');
+            document.getElementById('editFindScreen').classList.remove('hidden');
+            updateWelcomeTitle();
+            
+            
+            document.getElementById('editFindPlot').value = find.plot;
+            document.getElementById('editFindLayer').value = find.layer;
+            document.getElementById('editFindDescription').value = find.description;
+            document.getElementById('editFindLocation').value = find.location;
+            
+            
+            window.editingImages = find.images || [];
+            refreshEditThumbnails();
+        }
+        
+        let editingImages = [];
+        
+        function captureEditImage() {
+            const input = document.getElementById('editFindImages');
+            input.setAttribute('capture', 'environment');
+            input.click();
+        }
+        
+        function selectEditImages() {
+            const input = document.getElementById('editSelectImages');
+            input.click();
+        }
+        
+        function handleEditImageSelect(event) {
+            const files = event.target.files;
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageData = {
+                            name: file.name,
+                            url: e.target.result,
+                            file: file
+                        };
+                        editingImages.push(imageData);
+                        refreshEditThumbnails();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            event.target.value = '';
+        }
+        
+        function refreshEditThumbnails() {
+            const container = document.getElementById('editImageThumbnails');
+            container.innerHTML = '';
+            editingImages.forEach((imageData, index) => {
+                addEditThumbnail(imageData, index);
+            });
+        }
+        
+        function addEditThumbnail(imageData, index) {
+            const container = document.getElementById('editImageThumbnails');
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'thumbnail';
+            thumbnail.innerHTML = `
+                <img src="${imageData.url}" alt="${imageData.name}" onclick="showImage('${imageData.url}', '${imageData.name}')" style="cursor: pointer;">
+                <button class="delete-btn" onclick="deleteEditImage(${index})">×</button>
+            `;
+            container.appendChild(thumbnail);
+        }
+        
+        function deleteEditImage(index) {
+            if (confirm('הקובץ ימחק רוצה להמשיך?')) {
+                editingImages.splice(index, 1);
+                refreshEditThumbnails();
+            }
+        }
+        
+        function goBackToFindList() {
+            showFindList();
+        }
+        
+        function updateFind() {
+            const plot = document.getElementById('editFindPlot').value;
+            const layer = document.getElementById('editFindLayer').value;
+            const description = document.getElementById('editFindDescription').value;
+            const location = document.getElementById('editFindLocation').value;
+            
+            if (!plot || !layer || !description) {
+                alert('נא למלא את כל השדות החובה');
+                return;
+            }
+            
+            
+            const findIndex = window.allFinds.findIndex(f => f.id === window.currentEditingFind.id);
+            if (findIndex !== -1) {
+                window.allFinds[findIndex] = {
+                    ...window.currentEditingFind,
+                    plot: plot,
+                    layer: layer,
+                    description: description,
+                    location: location,
+                    images: editingImages,
+                    date: new Date().toLocaleDateString('he-IL')
+                };
+            }
+            
+            alert('הממצא עודכן בהצלחה!');
+            showFindList();
         }
         
         function showSites() {
             updateWelcomeTitle();
-            if (currentUser.role !== 'מנהל') {
-                alert('רק מנהל יכול לנהל אתרים');
-                return;
-            }
-            
-            alert('ניהול אתרים ייושם בהמשך');
-        }
-        
-        function showSites() {
             if (currentUser.role !== 'מנהל') {
                 alert('רק מנהל יכול לנהל אתרים');
                 return;
@@ -637,13 +834,13 @@
                         document.getElementById('findLocation').value = `${lat}, ${lng}`;
                     },
                     error => {
-                        // אם לא מצא מיקום, נציב מיקום ברירת מחדל בישראל
-                        document.getElementById('findLocation').value = '31.7683, 35.2137'; // ירושלים
+                        
+                        document.getElementById('findLocation').value = '31.7683, 35.2137'; 
                     }
                 );
             } else {
-                // אם הדפדפן לא תומך ב-GPS, נציב מיקום ברירת מחדל בישראל
-                document.getElementById('findLocation').value = '31.7683, 35.2137'; // ירושלים
+                
+                document.getElementById('findLocation').value = '31.7683, 35.2137'; 
             }
         }
         
@@ -748,10 +945,10 @@
                 return;
             }
             
-            // יצירת מזהה ייחודי לממצא
+            
             const findId = 'FIND-' + Date.now();
             
-            // יצירת אובייקט ממצא חדש
+            
             const newFind = {
                 id: findId,
                 site: site,
@@ -763,15 +960,15 @@
                 images: capturedImages.map(img => ({ name: img.name, url: img.url }))
             };
             
-            // הוספת הממצא לרשימה הגלובלית
+            
             if (!window.allFinds) {
                 window.allFinds = [];
             }
             window.allFinds.push(newFind);
             
-            // כאן יתווסף קוד שמירה ל-Google Sheets
             
-            // הצגת קוד QR לממצא
+            
+            
             showFindQRCode(findId);
             
             alert('הממצא נשמר בהצלחה!\nמזהה ממצא: ' + findId);
@@ -797,21 +994,173 @@
             content.style.borderRadius = '15px';
             content.style.maxWidth = '400px';
             content.style.textAlign = 'center';
+            
+            
+            const qrCanvas = createQRCode(findId);
+            
             content.innerHTML = `
                 <h2>קוד QR לממצא</h2>
                 <p style="font-size: 18px; font-weight: bold; color: #d1477a; margin: 1rem 0;">${findId}</p>
-                <div style="width: 200px; height: 200px; margin: 1rem auto; border: 2px solid #ff69b4; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f0f0f0;">
-                    <span style="color: #666; font-size: 14px;">קוד QR<br>יווצר כאן<br>לאחר החיבור<br>למסד הנתונים</span>
+                <div style="width: 200px; height: 200px; margin: 1rem auto; border: 2px solid #ff69b4; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: white; padding: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <div id="qr-container"></div>
                 </div>
-                <p style="color: #666; font-size: 14px;">שמור את המזהה או צלם את הקוד</p>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: #ff69b4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-top: 1rem;">סגור</button>
+                <p style="color: #666; font-size: 14px;">קוד QR יוצר כאן</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 1rem;">
+                    <button onclick="printQRCode('${findId}')" style="background: #4ecdc4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        🖨️ הדפס
+                    </button>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #ff69b4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">סגור</button>
+                </div>
             `;
             
             modal.appendChild(content);
             document.body.appendChild(modal);
+            
+            
+            const qrContainer = content.querySelector('#qr-container');
+            if (qrCanvas) {
+                qrCanvas.style.width = '100%';
+                qrCanvas.style.height = '100%';
+                qrContainer.appendChild(qrCanvas);
+            } else {
+                qrContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px;">קוד QR<br>יוצר כאן</div>';
+            }
         }
         
-        // בדיקה אם יש משתמש שמור
+        function createQRCode(text) {
+            
+            const canvas = document.createElement('canvas');
+            const size = 180;
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, size, size);
+            
+            
+            ctx.fillStyle = 'black';
+            const cellSize = 4;
+            const pattern = generateQRPattern(text);
+            
+            for (let row = 0; row < pattern.length; row++) {
+                for (let col = 0; col < pattern[row].length; col++) {
+                    if (pattern[row][col]) {
+                        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+            
+            
+            ctx.fillStyle = '#ff69b4';
+            ctx.fillRect(size/2 - 8, size/2 - 8, 16, 16);
+            ctx.fillStyle = 'white';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(text.substring(0, 8), size/2, size/2 + 3);
+            
+            return canvas;
+        }
+        
+        function generateQRPattern(text) {
+            
+            const rows = 45;
+            const cols = 45;
+            const pattern = [];
+            let hash = 0;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            const random = () => {
+                hash = (hash * 9301 + 49297) % 233280;
+                return hash / 233280;
+            };
+            
+            for (let row = 0; row < rows; row++) {
+                pattern[row] = [];
+                for (let col = 0; col < cols; col++) {
+                    pattern[row][col] = random() > 0.5;
+                }
+            }
+            
+            return pattern;
+        }
+        
+        function printQRCode(findId) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>הדפסת קוד QR - ${findId}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            text-align: center; 
+                            padding: 20px;
+                            direction: rtl;
+                        }
+                        .qr-container {
+                            border: 3px solid #ff69b4;
+                            border-radius: 15px;
+                            padding: 20px;
+                            display: inline-block;
+                            background: white;
+                        }
+                        h2 { color: #d1477a; margin-bottom: 10px; }
+                        .find-id { 
+                            font-size: 24px; 
+                            font-weight: bold; 
+                            color: #d1477a; 
+                            margin: 10px 0;
+                        }
+                        .qr-frame { 
+                            width: 250px; 
+                            height: 250px; 
+                            border: 2px solid #ff69b4; 
+                            border-radius: 10px; 
+                            margin: 20px auto; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: white;
+                            padding: 10px;
+                        }
+                        .qr-text {
+                            color: #666; 
+                            font-size: 16px; 
+                            margin: 10px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-container">
+                        <h2>קוד QR לממצא</h2>
+                        <div class="find-id">${findId}</div>
+                        <div class="qr-frame">
+                            <div style="text-align: center; color: #666;">
+                                <div style="font-size: 14px; margin-bottom: 10px;">קודQR</div>
+                                <div style="font-size: 18px; font-weight: bold;">יוצר כאן</div>
+                            </div>
+                        </div>
+                        <div class="qr-text">קוד QR יוצר כאן</div>
+                    </div>
+                    <script>
+                        setTimeout(function() {
+                            window.print();
+                        }, 100);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+        
+        
         window.onload = function() {
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
@@ -821,7 +1170,7 @@
             }
         };
         
-        // טיפול בלחיצת כפתור "חזור" בטלפון
+        
         window.addEventListener('popstate', function(event) {
             event.preventDefault();
             goBack();
@@ -829,22 +1178,20 @@
         
         function goBack() {
             const mainScreen = document.getElementById('mainScreen');
-            const addFindScreen = document.getElementById('addFindScreen');
-            const findListScreen = document.getElementById('findListScreen');
             
-            if (!addFindScreen.classList.contains('hidden')) {
-                showMainMenu();
-            } else if (!findListScreen.classList.contains('hidden')) {
-                showMainMenu();
-            } else {
-                // אם אנחנו במסך הראשי, אפשר לצאת מהאפליקציה
+            
+            if (!mainScreen.classList.contains('hidden')) {
+                
                 if (confirm('האם ברצונך לצאת מהאפליקציה?')) {
                     window.history.back();
                 }
+            } else {
+                
+                showMainMenu();
             }
         }
         
-        // הוספת תמיכה בכפתור "חזור" של אנדרואיד
+        
         document.addEventListener('backbutton', goBack);
     </script>
 </body>
