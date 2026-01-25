@@ -8,6 +8,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TITANTAG - מערכת ארכיאולוגיה</title>
     
+    <!-- Mobile App Permissions -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * {
@@ -159,7 +163,18 @@
         
         
         <div id="addFindScreen" class="hidden">
-            <h3>הוספת ממצא חדש</h3>
+            <div style="position: relative; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                <button class="mic-button" id="micButton" aria-label="הקלט קולי" style="width: 50px; height: 50px; border-radius: 50%; background: #fff; border: 2px solid #ff69b4; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 10; flex-shrink: 0;" onclick="toggleVoiceRecognition()">
+                    <span style="font-size: 1.5rem;">🎤</span>
+                </button>
+                <h3 style="margin: 0; text-align: center; flex-grow: 1;">הוספת ממצא חדש</h3>
+                <div style="width: 50px; flex-shrink: 0;"></div>
+            </div>
+            <div class="status-message" id="statusMessage">
+                <span>🎤</span>
+                <span id="statusText">מאזין...</span>
+            </div>
+            
             <div class="form-group">
                 <label for="findPlot">חלקה:</label>
                 <select id="findPlot" style="width: 100%; padding: 0.75rem; border: 2px solid #ffb6c1; border-radius: 8px;">
@@ -265,6 +280,55 @@
                     justify-content: center;
                     z-index: 10;
                 }
+        
+        .mic-button:hover {
+            transform: translateY(-50%) scale(1.1) !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2) !important;
+        }
+        
+        .mic-button.listening {
+            background: #f44336 !important;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .mic-button.listening span {
+            color: white !important;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 0 rgba(244, 67, 54, 0.7);
+            }
+            70% {
+                box-shadow: 0 6px 20px rgba(0,0,0,0.2), 0 0 0 10px rgba(244, 67, 54, 0);
+            }
+            100% {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 0 rgba(244, 67, 54, 0);
+            }
+        }
+        
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-message.listening {
+            background: #e3f2fd;
+            color: #1976D2;
+            border: 1px solid #bbdefb;
+            display: flex;
+        }
+        
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+            display: flex;
+        }
             </style>
             <div style="position: relative; min-height: 60px;">
                 <button onclick="showMainMenu()" style="position: absolute; left: 0; top: 0; background: none; border: none; font-size: 24px; cursor: pointer;">🏠</button>
@@ -386,8 +450,24 @@
                     return;
                 }
                 
+                // בדיקת תקינות אימייל בסיסית
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    alert('נא להכניס כתובת אימייל תקינה');
+                    return;
+                }
+                
                 currentUser = { name, email, role, site };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // שמירה ב-localStorage עם טיפול בשגיאות
+                try {
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    console.log('User saved to localStorage successfully');
+                } catch (storageError) {
+                    console.error('Error saving to localStorage:', storageError);
+                    alert('שגיאה בשמירת נתוני המשתמש. אנא נסה שוב.');
+                    return;
+                }
                 
                 console.log('About to show main menu');
                 showMainMenu();
@@ -414,12 +494,20 @@
         }
         
         function showMainMenu() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainScreen').classList.remove('hidden');
-            document.getElementById('addFindScreen').classList.add('hidden');
-            document.getElementById('findListScreen').classList.add('hidden');
-            document.getElementById('editFindScreen').classList.add('hidden');
-            updateWelcomeTitle();
+            try {
+                console.log('Showing main menu');
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainScreen').classList.remove('hidden');
+                document.getElementById('addFindScreen').classList.add('hidden');
+                document.getElementById('findListScreen').classList.add('hidden');
+                document.getElementById('editFindScreen').classList.add('hidden');
+                updateWelcomeTitle();
+                updateUserInfo();
+                console.log('Main menu shown successfully');
+            } catch (error) {
+                console.error('Error showing main menu:', error);
+                alert('שגיאה בהצגת התפריט הראשי');
+            }
         }
         
         function showAddFind() {
@@ -817,11 +905,20 @@
         }
         
         function updateUserInfo() {
-            if (currentUser) {
-                document.getElementById('userInfo').innerHTML = 
-                    `<p><strong>משתמש:</strong> ${currentUser.name}</p>
-                     <p><strong>תפקיד:</strong> ${currentUser.role}</p>
-                     <p><strong>אתר:</strong> ${currentUser.site}</p>`;
+            try {
+                console.log('Updating user info');
+                const userInfoElement = document.getElementById('userInfo');
+                if (userInfoElement && currentUser) {
+                    userInfoElement.innerHTML = 
+                        `<p><strong>משתמש:</strong> ${currentUser.name}</p>
+                         <p><strong>תפקיד:</strong> ${currentUser.role}</p>
+                         <p><strong>אתר:</strong> ${currentUser.site}</p>`;
+                    console.log('User info updated successfully');
+                } else {
+                    console.log('User info element not found or no current user');
+                }
+            } catch (error) {
+                console.error('Error updating user info:', error);
             }
         }
         
@@ -1162,11 +1259,42 @@
         
         
         window.onload = function() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainMenu();
-                updateUserInfo();
+            try {
+                console.log('App loading...');
+                const savedUser = localStorage.getItem('currentUser');
+                console.log('Saved user found:', savedUser ? 'yes' : 'no');
+                
+                if (savedUser) {
+                    try {
+                        currentUser = JSON.parse(savedUser);
+                        console.log('User parsed successfully:', currentUser);
+                        
+                        // בדיקת תקינות המשתמש
+                        if (currentUser && currentUser.name && currentUser.email && currentUser.role && currentUser.site) {
+                            console.log('User data is valid, showing main menu');
+                            
+                            // המתנה קצרה לוודא שכל האלמנטים נטענו
+                            setTimeout(() => {
+                                updateUserInfo();
+                                showMainMenu();
+                            }, 100);
+                        } else {
+                            console.log('User data is invalid, clearing and showing login');
+                            localStorage.removeItem('currentUser');
+                            currentUser = null;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing saved user:', parseError);
+                        localStorage.removeItem('currentUser');
+                        currentUser = null;
+                    }
+                } else {
+                    console.log('No saved user, showing login screen');
+                }
+            } catch (error) {
+                console.error('Error during app initialization:', error);
+                localStorage.removeItem('currentUser');
+                currentUser = null;
             }
         };
         
@@ -1193,6 +1321,608 @@
         
         
         document.addEventListener('backbutton', goBack);
+        
+        // Voice Recognition System
+        class VoiceRecognition {
+            constructor() {
+                this.recognition = null;
+                this.isListening = false;
+                this.micButton = document.getElementById('micButton');
+                this.descriptionTextarea = document.getElementById('findDescription');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.statusText = document.getElementById('statusText');
+                this.speechDetected = false;
+                this.timeoutId = null;
+                this.lastSpeechTime = 0;
+                this.lastInterimText = '';
+                this.baseText = '';
+                
+                this.initializeSpeechRecognition();
+            }
+            
+            initializeSpeechRecognition() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    this.showError('הדפדפן שלך לא תומך בזיהוי קולי. אנא השתמש בדפדפן מודרני.');
+                    if (this.micButton) {
+                        this.micButton.style.display = 'none';
+                    }
+                    return;
+                }
+                
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
+                
+                // הגדרות לשפה העברית
+                this.recognition.lang = 'he-IL';
+                this.recognition.continuous = false;
+                this.recognition.interimResults = true;
+                this.recognition.maxAlternatives = 1;
+                
+                // אירועים
+                this.recognition.onstart = () => {
+                    this.startListening();
+                };
+                
+                this.recognition.onresult = (event) => {
+                    this.handleResult(event);
+                };
+                
+                this.recognition.onerror = (event) => {
+                    this.handleError(event);
+                };
+                
+                this.recognition.onend = () => {
+                    this.stopListening();
+                };
+            }
+            
+            startRecognition() {
+                if (this.recognition) {
+                    try {
+                        this.recognition.start();
+                    } catch (error) {
+                        console.error('שגיאה בהפעלת זיהוי קולי:', error);
+                    }
+                }
+            }
+            
+            startListening() {
+                this.isListening = true;
+                this.speechDetected = false;
+                this.lastSpeechTime = Date.now();
+                this.lastInterimText = '';
+                this.baseText = this.descriptionTextarea ? this.descriptionTextarea.value : '';
+                if (this.micButton) {
+                    this.micButton.classList.add('listening');
+                }
+                this.showStatus('מאזין...', 'listening');
+                
+                // השמעת קובץ אודיו והמתנה לסיום לפני התחלת ההאזנה
+                const audio = new Audio('enter_description.m4a');
+                audio.play().catch(e => this.showVisualAlert(e));
+                audio.onended = () => {
+                    // לאחר סיום האודיו, מתחילים את טיימאאוט השקט
+                    this.timeoutId = setTimeout(() => {
+                        this.checkSilenceTimeout();
+                    }, 5000);
+                };
+            }
+            
+            checkSilenceTimeout() {
+                const timeSinceLastSpeech = Date.now() - this.lastSpeechTime;
+                if (timeSinceLastSpeech >= 5000 && this.isListening) {
+                    this.stopListening();
+                    this.showError('לא זוהה דיבור. ההקלטה הופסקה.');
+                } else if (this.isListening) {
+                    // Reset timeout for another 5 seconds
+                    this.timeoutId = setTimeout(() => {
+                        this.checkSilenceTimeout();
+                    }, 5000);
+                }
+            }
+            
+            stopListening() {
+                this.isListening = false;
+                if (this.micButton) {
+                    this.micButton.classList.remove('listening');
+                }
+                this.hideStatus();
+                
+                // Clear the timeout
+                if (this.timeoutId) {
+                    clearTimeout(this.timeoutId);
+                    this.timeoutId = null;
+                }
+                
+                if (this.recognition) {
+                    this.recognition.stop();
+                }
+            }
+            
+            handleResult(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                // Mark that speech was detected and update last speech time
+                if (event.results.length > 0) {
+                    this.speechDetected = true;
+                    this.lastSpeechTime = Date.now();
+                }
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Real-time transcription without duplication
+                if (this.descriptionTextarea) {
+                    if (interimTranscript) {
+                        // Store the interim text
+                        this.lastInterimText = interimTranscript;
+                        
+                        // Show base text + interim text
+                        const displayText = this.baseText + (this.baseText ? ' ' : '') + interimTranscript;
+                        this.descriptionTextarea.value = displayText;
+                        
+                        // Move cursor to end
+                        this.descriptionTextarea.focus();
+                        this.descriptionTextarea.setSelectionRange(this.descriptionTextarea.value.length, this.descriptionTextarea.value.length);
+                    }
+                    
+                    if (finalTranscript) {
+                        // Add final transcript to base text
+                        this.baseText = this.baseText + (this.baseText ? ' ' : '') + finalTranscript;
+                        this.lastInterimText = '';
+                        
+                        // Update textarea with final text
+                        this.descriptionTextarea.value = this.baseText;
+                        this.descriptionTextarea.focus();
+                        this.descriptionTextarea.setSelectionRange(this.descriptionTextarea.value.length, this.descriptionTextarea.value.length);
+                    }
+                }
+                
+                if (interimTranscript) {
+                    this.showStatus(`מאזין: ${interimTranscript}`, 'listening');
+                }
+            }
+            
+            handleError(event) {
+                let errorMessage = 'אירעה שגיאה בזיהוי קולי';
+                
+                switch (event.error) {
+                    case 'no-speech':
+                        errorMessage = 'לא זוהה דיבור. אנא נסה שוב.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = 'לא ניתן לגשת למיקרופון. אנא בדוק הרשאות.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = 'הגישה למיקרופון נדחתה. אנא אפשר גישה למיקרופון.';
+                        break;
+                    case 'network':
+                        errorMessage = 'שגיאת רשת. אנא בדוק את החיבור לאינטרנט.';
+                        break;
+                }
+                
+                this.showError(errorMessage);
+                this.stopListening();
+            }
+            
+            showStatus(text, type) {
+                if (this.statusText) {
+                    this.statusText.textContent = text;
+                }
+                if (this.statusMessage) {
+                    this.statusMessage.className = `status-message ${type}`;
+                    this.statusMessage.style.display = 'flex';
+                }
+            }
+            
+            showError(text) {
+                if (this.statusText) {
+                    this.statusText.textContent = text;
+                }
+                if (this.statusMessage) {
+                    this.statusMessage.className = 'status-message error';
+                    this.statusMessage.style.display = 'flex';
+                }
+                
+                setTimeout(() => {
+                    this.hideStatus();
+                }, 5000);
+            }
+            
+            hideStatus() {
+                if (this.statusMessage) {
+                    this.statusMessage.style.display = 'none';
+                }
+            }
+            
+            speak(text) {
+                // Try TTS using multiple approaches
+                this.tryTTSEngines(text);
+            }
+            
+            tryTTSEngines(text) {
+                window.Android.speak(text);
+                return;
+                console.log('Attempting TTS with text:', text);
+                
+                // Method 1: Direct Android TTS call (bypass interface detection)
+                if (this.tryDirectAndroidTTS(text)) {
+                    console.log('Direct Android TTS succeeded');
+                    return;
+                }
+                
+                // Method 2: Android TTS Bridge (if available)
+                if (this.tryAndroidTTS(text)) {
+                    console.log('Android TTS succeeded');
+                    return;
+                }
+                
+                // Method 3: Web Speech Synthesis
+                if (this.tryWebSpeech(text)) {
+                    console.log('Web speech succeeded');
+                    return;
+                }
+                
+                // Method 4: Visual fallback
+                console.log('Falling back to visual alert');
+                this.showVisualAlert(text);
+            }
+            
+            tryDirectAndroidTTS(text) {
+                // Try direct call without interface detection
+                console.log('Trying direct Android TTS call...');
+                
+                try {
+                    // Try to call the direct method directly
+                    if (window.AndroidTTS && window.AndroidTTS.directSpeak) {
+                        console.log('Calling directSpeak method');
+                        window.AndroidTTS.directSpeak(text);
+                        console.log('Direct TTS call completed');
+                        return true;
+                    } else {
+                        console.log('DirectSpeak method not available');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Direct TTS failed:', error);
+                    return false;
+                }
+            }
+            
+            tryAndroidTTS(text) {
+                // Check if we're in Android WebView with TTS bridge
+                console.log('Checking Android TTS availability...');
+                console.log('window.AndroidTTS exists:', !!window.AndroidTTS);
+                console.log('window.AndroidTTS.speak exists:', !!(window.AndroidTTS && window.AndroidTTS.speak));
+                
+                if (window.AndroidTTS && window.AndroidTTS.speak) {
+                    try {
+                        const isAvailable = window.AndroidTTS.isAvailable();
+                        const engine = window.AndroidTTS.getTTSEngine();
+                        console.log('TTS available:', isAvailable);
+                        console.log('TTS engine:', engine);
+                        
+                        if (isAvailable) {
+                            console.log('Calling Android TTS with:', text);
+                            window.AndroidTTS.speak(text);
+                            console.log('Android TTS call completed');
+                            return true;
+                        } else {
+                            console.warn('TTS not available');
+                            return false;
+                        }
+                    } catch (error) {
+                        console.error('Android TTS failed:', error);
+                        console.error('TTS error stack:', error.stack);
+                        return false;
+                    }
+                } else {
+                    console.warn('Android TTS interface not available');
+                    return false;
+                }
+            }
+            
+            tryWebSpeech(text) {
+                if (!('speechSynthesis' in window)) {
+                    console.warn('Speech synthesis not available');
+                    return false;
+                }
+                
+                try {
+                    // Cancel any ongoing speech
+                    speechSynthesis.cancel();
+                    
+                    // Try to enable audio first
+                    this.enableAudioContext().then(() => {
+                        this.createAndSpeakUtterance(text);
+                    }).catch(error => {
+                        console.warn('Audio enable failed:', error);
+                        return false;
+                    });
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Web speech failed:', error);
+                    return false;
+                }
+            }
+            
+            enableAudioContext() {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // Method 1: Create new audio context
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        const audioContext = new AudioContextClass();
+                        
+                        if (audioContext.state === 'suspended') {
+                            audioContext.resume().then(() => {
+                                console.log('Audio context resumed');
+                                resolve();
+                            }).catch(reject);
+                        } else {
+                            resolve();
+                        }
+                    } catch (error) {
+                        // Method 2: Try silent audio play
+                        this.playSilentAudio().then(resolve).catch(reject);
+                    }
+                });
+            }
+            
+            playSilentAudio() {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // Create a silent audio element
+                        const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+                        audio.volume = 0.01;
+                        audio.play().then(() => {
+                            console.log('Silent audio played successfully');
+                            resolve();
+                        }).catch(reject);
+                        
+                        // Clean up
+                        setTimeout(() => {
+                            audio.pause();
+                        }, 100);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+            
+            createAndSpeakUtterance(text) {
+                // Create utterance with better settings
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.7; // Slower for clarity
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                // Try to find a good voice
+                const voices = speechSynthesis.getVoices();
+                const englishVoice = voices.find(voice => 
+                    voice.lang.startsWith('en') && voice.name.includes('Google')
+                ) || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+                
+                if (englishVoice) {
+                    utterance.voice = englishVoice;
+                    console.log('Using voice:', englishVoice.name);
+                }
+                
+                // Add event listeners
+                utterance.onstart = () => {
+                    console.log('Speaking:', text);
+                };
+                
+                utterance.onend = () => {
+                    console.log('Finished speaking:', text);
+                };
+                
+                utterance.onerror = (event) => {
+                    console.error('Speech synthesis error:', event);
+                    this.showVisualAlert(text);
+                };
+                
+                // Wait for voices to be loaded
+                if (voices.length === 0) {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        this.speakWithRetry(utterance);
+                    };
+                } else {
+                    this.speakWithRetry(utterance);
+                }
+            }
+            
+            speakWithRetry(utterance) {
+                try {
+                    setTimeout(() => {
+                        speechSynthesis.speak(utterance);
+                    }, 200);
+                    
+                    // Backup attempt
+                    setTimeout(() => {
+                        if (!speechSynthesis.speaking) {
+                            speechSynthesis.speak(utterance);
+                        }
+                    }, 500);
+                    
+                    // Final backup
+                    setTimeout(() => {
+                        if (!speechSynthesis.speaking) {
+                            this.showVisualAlert(utterance.text);
+                        }
+                    }, 1000);
+                } catch (error) {
+                    console.error('Speak retry failed:', error);
+                    this.showVisualAlert(utterance.text);
+                }
+            }
+            
+            showVisualAlert(text) {
+                // Show visual feedback instead of audio
+                this.showStatus(text, 'listening');
+                setTimeout(() => {
+                    this.hideStatus();
+                }, 3000);
+                
+                // Also show as browser notification if possible
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Voice Input', {
+                        body: text,
+                        icon: '🎤'
+                    });
+                } else if ('Notification' in window && Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Voice Input', {
+                                body: text,
+                                icon: '🎤'
+                            });
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Initialize voice recognition when page loads
+        let voiceRecognition = null;
+        
+        function toggleVoiceRecognition() {
+            if (!voiceRecognition) {
+                voiceRecognition = new VoiceRecognition();
+            }
+            
+            if (voiceRecognition.isListening) {
+                voiceRecognition.stopListening();
+            } else {
+                voiceRecognition.startRecognition();
+            }
+        }
+        
+        // Initialize voice recognition on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Request necessary permissions
+            requestAppPermissions();
+            
+            // Wait for Android TTS interface to be ready
+            setTimeout(() => {
+                voiceRecognition = new VoiceRecognition();
+                
+                // Test TTS availability with multiple attempts
+                let attempts = 0;
+                const maxAttempts = 5;
+                
+                function checkTTS() {
+                    console.log(`TTS check attempt ${attempts + 1}/${maxAttempts}`);
+                    console.log('window.AndroidTTS type:', typeof window.AndroidTTS);
+                    console.log('window.AndroidTTS:', window.AndroidTTS);
+                    
+                    // Try multiple ways to access the interface
+                    const ttsInterface = window.AndroidTTS || window.webkit.AndroidTTS || document.AndroidTTS;
+                    
+                    if (ttsInterface) {
+                        console.log('Android TTS interface found');
+                        console.log('TTS available:', ttsInterface.isAvailable());
+                        console.log('TTS engine:', ttsInterface.getTTSEngine());
+                        
+                        if (ttsInterface.isAvailable()) {
+                            console.log('TTS is ready for use');
+                            // Store globally for easier access
+                            window.AndroidTTS = ttsInterface;
+                            return true;
+                        }
+                    } else {
+                        console.log('Android TTS interface not found, falling back to web speech');
+                        console.log('Available window properties:', Object.keys(window).filter(key => key.toLowerCase().includes('android')));
+                        return false;
+                    }
+                }
+                
+                // Try multiple times
+                const interval = setInterval(() => {
+                    attempts++;
+                    if (!checkTTS()) {
+                        if (attempts >= maxAttempts) {
+                            clearInterval(interval);
+                            console.log('TTS interface not available after multiple attempts');
+                        }
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }, 1000);
+        });
+        
+        // Request app permissions on startup
+        function requestAppPermissions() {
+            // Request microphone permission
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        console.log('Microphone permission granted');
+                        stream.getTracks().forEach(track => track.stop()); // Stop immediately
+                    })
+                    .catch(error => {
+                        console.warn('Microphone permission denied:', error);
+                        showPermissionPrompt('microphone');
+                    });
+            }
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    console.log('Notification permission:', permission);
+                });
+            }
+            
+            // Request audio context permissions for mobile
+            if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+                
+                // Resume audio context if suspended (required by some mobile browsers)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('Audio context resumed');
+                    }).catch(error => {
+                        console.warn('Failed to resume audio context:', error);
+                    });
+                }
+            }
+        }
+        
+        // Show permission prompt to user
+        function showPermissionPrompt(type) {
+            const message = type === 'microphone' 
+                ? 'This app needs microphone access for voice input. Please enable microphone permissions in your browser settings.'
+                : 'This app needs additional permissions to function properly.';
+                
+            alert(message);
+        }
+        
+        // Add user interaction handler for audio context
+        document.addEventListener('click', function initAudioOnFirstInteraction() {
+            if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('Audio context resumed by user interaction');
+                    });
+                }
+            }
+            
+            // Remove listener after first interaction
+            document.removeEventListener('click', initAudioOnFirstInteraction);
+        }, { once: true });
     </script>
 </body>
 </html>
