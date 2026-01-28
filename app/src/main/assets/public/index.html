@@ -439,16 +439,31 @@
         let currentUser = null;
         
         function login() {
+            console.log('=== LOGIN FUNCTION CALLED ===');
             try {
                 console.log('Login function started');
-                const name = document.getElementById('userName').value;
-                const email = document.getElementById('userEmail').value;
-                const role = document.getElementById('userRole').value;
-                const site = document.getElementById('userSite').value;
+                
+                const nameInput = document.getElementById('userName');
+                const emailInput = document.getElementById('userEmail');
+                const roleInput = document.getElementById('userRole');
+                const siteInput = document.getElementById('userSite');
+                
+                console.log('Input elements found:', {
+                    name: !!nameInput,
+                    email: !!emailInput, 
+                    role: !!roleInput,
+                    site: !!siteInput
+                });
+                
+                const name = nameInput ? nameInput.value : '';
+                const email = emailInput ? emailInput.value : '';
+                const role = roleInput ? roleInput.value : '';
+                const site = siteInput ? siteInput.value : '';
                 
                 console.log('Form values:', { name, email, role, site });
                 
                 if (!name || !email || !role || !site) {
+                    console.log('Validation failed - missing fields');
                     alert('נא למלא את כל השדות');
                     return;
                 }
@@ -456,11 +471,13 @@
                 // בדיקת תקינות אימייל בסיסית
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
+                    console.log('Email validation failed');
                     alert('נא להכניס כתובת אימייל תקינה');
                     return;
                 }
                 
                 currentUser = { name, email, role, site };
+                console.log('Current user set:', currentUser);
                 
                 // שמירה ב-localStorage עם טיפול בשגיאות
                 try {
@@ -490,9 +507,9 @@
                     console.error('Error in updateUserInfo:', e);
                 }
                 
-                console.log('Login completed successfully');
+                console.log('=== LOGIN COMPLETED SUCCESSFULLY ===');
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('=== LOGIN ERROR ===', error);
                 alert('שגיאה בהתחברות: ' + error.message);
             }
         }
@@ -1048,16 +1065,71 @@
         }
         
         function saveFind() {
-            const site = currentUser.site;
-            const plot = document.getElementById('findPlot').value;
-            const layer = document.getElementById('findLayer').value;
-            const description = document.getElementById('findDescription').value;
-            const location = document.getElementById('findLocation').value;
-            
-            if (!plot || !layer || !description) {
-                alert('נא למלא את כל השדות החובה');
-                return;
+            console.log('=== SAVE FIND FUNCTION CALLED ===');
+            try {
+                console.log('Current user:', currentUser);
+                
+                const site = currentUser ? currentUser.site : '';
+                const plotElement = document.getElementById('findPlot');
+                const layerElement = document.getElementById('findLayer');
+                const descriptionElement = document.getElementById('findDescription');
+                const locationElement = document.getElementById('findLocation');
+                
+                console.log('Input elements found:', {
+                    plot: !!plotElement,
+                    layer: !!layerElement,
+                    description: !!descriptionElement,
+                    location: !!locationElement
+                });
+                
+                const plot = plotElement ? plotElement.value : '';
+                const layer = layerElement ? layerElement.value : '';
+                const description = descriptionElement ? descriptionElement.value : '';
+                const location = locationElement ? locationElement.value : '';
+                
+                console.log('Form values:', { site, plot, layer, description, location });
+                
+                if (!plot || !layer || !description) {
+                    console.log('Validation failed - missing required fields');
+                    alert('נא למלא את כל השדות החובה');
+                    return;
+                }
+                
+                const findId = 'FIND-' + Date.now();
+                console.log('Generated findId:', findId);
+                
+                const newFind = {
+                    id: findId,
+                    site: site,
+                    plot: plot,
+                    layer: layer,
+                    description: description,
+                    location: location,
+                    date: new Date().toLocaleDateString('he-IL'),
+                    images: capturedImages ? capturedImages.map(img => ({ name: img.name, url: img.url })) : []
+                };
+                
+                console.log('New find object:', newFind);
+                
+                if (!window.allFinds) {
+                    window.allFinds = [];
+                }
+                window.allFinds.push(newFind);
+                console.log('All finds updated, total count:', window.allFinds.length);
+                
+                console.log('About to show QR code');
+                showFindQRCode(findId);
+                
+                alert('הממצא נשמר בהצלחה!\nמזהה ממצא: ' + findId);
+                console.log('About to show main menu');
+                showMainMenu();
+                
+                console.log('=== SAVE FIND COMPLETED ===');
+            } catch (error) {
+                console.error('=== SAVE FIND ERROR ===', error);
+                alert('שגיאה בשמירת הממצא: ' + error.message);
             }
+        }
             
             
             const findId = 'FIND-' + Date.now();
@@ -1475,6 +1547,18 @@
         window.onload = function() {
             try {
                 console.log('App loading...');
+                
+                // Global error handler
+                window.addEventListener('error', function(event) {
+                    console.error('JavaScript error:', event.error);
+                    console.error('Error location:', event.filename, event.lineno, event.colno);
+                });
+                
+                // Unhandled promise rejection handler
+                window.addEventListener('unhandledrejection', function(event) {
+                    console.error('Unhandled promise rejection:', event.reason);
+                });
+                
                 const savedUser = localStorage.getItem('currentUser');
                 console.log('Saved user found:', savedUser ? 'yes' : 'no');
                 
@@ -2024,11 +2108,27 @@
         
         // Initialize voice recognition on page load
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded - Starting initialization');
+            
+            // Debug: Check if buttons are clickable
+            document.querySelectorAll('button').forEach((button, index) => {
+                console.log(`Button ${index}: ${button.textContent} - onclick: ${button.onclick ? 'exists' : 'missing'}`);
+                if (!button.onclick && button.getAttribute('onclick')) {
+                    console.log(`Button ${index} has onclick attribute: ${button.getAttribute('onclick')}`);
+                }
+            });
+            
+            // Test click events
+            document.addEventListener('click', function(event) {
+                console.log('Click detected on:', event.target.tagName, event.target.textContent || event.target.value);
+            }, true);
+            
             // Request necessary permissions
             requestAppPermissions();
             
             // Wait for Android TTS interface to be ready
             setTimeout(() => {
+                console.log('Initializing voice recognition...');
                 voiceRecognition = new VoiceRecognition();
                 
                 // Test TTS availability with multiple attempts
@@ -2039,6 +2139,8 @@
                     console.log(`TTS check attempt ${attempts + 1}/${maxAttempts}`);
                     console.log('window.AndroidTTS type:', typeof window.AndroidTTS);
                     console.log('window.AndroidTTS:', window.AndroidTTS);
+                    console.log('window.Android type:', typeof window.Android);
+                    console.log('window.Android:', window.Android);
                     
                     // Try multiple ways to access the interface
                     const ttsInterface = window.AndroidTTS || window.webkit.AndroidTTS || document.AndroidTTS;
@@ -2074,6 +2176,8 @@
                     }
                 }, 1000);
             }, 1000);
+            
+            console.log('DOM initialization completed');
         });
         
         // Request app permissions on startup

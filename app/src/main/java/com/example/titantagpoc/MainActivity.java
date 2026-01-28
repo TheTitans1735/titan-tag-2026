@@ -1,6 +1,9 @@
 package com.example.titantagpoc;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,13 +20,16 @@ import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 
+import java.io.OutputStream;
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends BridgeActivity {
     
     private TextToSpeech tts;
     private static final String TAG = "MainActivity";
     private static final int REQUEST_TTS_CODE = 1001;
+    private static final int REQUEST_BT_PERMISSIONS = 1002;
     
     @Override
     public void onStart() {
@@ -43,7 +49,9 @@ public class MainActivity extends BridgeActivity {
                     WebView webView = getBridge().getWebView();
                     if (webView != null) {
                         webView.addJavascriptInterface(new AndroidTTSInterface(), "AndroidTTS");
+                        webView.addJavascriptInterface(new AndroidPrintInterface(), "Android");
                         Log.d(TAG, "AndroidTTS interface added");
+                        Log.d(TAG, "AndroidPrint interface added");
                         
                         // Add JavaScript to make interface globally available
                         webView.post(new Runnable() {
@@ -60,7 +68,6 @@ public class MainActivity extends BridgeActivity {
                     Locale hebrew = new Locale("he", "IL");
                     int result = tts.isLanguageAvailable(hebrew);
 
-//                    int result = tts.isLanguageAvailable(java.util.Locale.US);
                     Log.d(TAG, "TTS language availability result: " + result);
                     
                     if (result == TextToSpeech.LANG_MISSING_DATA || 
@@ -70,7 +77,6 @@ public class MainActivity extends BridgeActivity {
                         showTTSInstallDialog();
                     } else {
                         Log.d(TAG, "TTS language available");
-                        // Don't run test automatically - wait for user interaction
                         Log.d(TAG, "TTS ready for user interaction");
                     }
                 } else {
@@ -96,7 +102,11 @@ public class MainActivity extends BridgeActivity {
             String[] permissions = {
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.MODIFY_AUDIO_SETTINGS,
-                Manifest.permission.SYSTEM_ALERT_WINDOW
+                Manifest.permission.SYSTEM_ALERT_WINDOW,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             };
             
             boolean needsPermission = false;
@@ -155,23 +165,161 @@ public class MainActivity extends BridgeActivity {
         }
     }
     
-    private void testTTSWithSpeak() {
-        if (tts != null) {
-            Log.d(TAG, "Testing TTS with test phrase");
+    private String createBluetoothPrintContent(String findId) {
+        StringBuilder content = new StringBuilder();
+        content.append("================================\n");
+        content.append("קוד QR לממצא\n");
+        content.append("================================\n");
+        content.append("מזהה: ").append(findId).append("\n");
+        content.append("תאריך: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date())).append("\n");
+        content.append("================================\n");
+        content.append("\n\n");
+        
+        // Note: For actual QR code printing, you would need to:
+        // 1. Generate QR code image
+        // 2. Convert to printer-compatible format
+        // 3. Send as binary data
+        
+        // For now, we send a text representation
+        content.append("[QR CODE: ").append(findId).append("]\n");
+        content.append("סרוק את הקוד לגישה לממצא\n");
+        content.append("\n================================\n");
+        
+        return content.toString();
+    }
+    
+    private boolean sendToBluetoothPrinter(String printerName, String content) {
+        try {
+            Log.d(TAG, "Attempting to connect to Bluetooth printer: " + printerName);
             
-            // Create utterance parameters for modern API
-            java.util.HashMap<String, String> params = new java.util.HashMap<>();
-            params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "titanTagTest");
+            // Add Bluetooth permissions check
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) 
+                != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) 
+                != PackageManager.PERMISSION_GRANTED) {
+                Log.e(TAG, "Bluetooth permissions not granted");
+                requestBluetoothPermissions();
+                return false;
+            }
             
-            int result = tts.speak("TTS test successful", TextToSpeech.QUEUE_ADD, params);
+            // Try direct Bluetooth connection
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+                Log.e(TAG, "Bluetooth not available or not enabled");
+                showToast("אנא אפשר Bluetooth בהגדרות");
+                return false;
+            }
             
-            if (result == TextToSpeech.ERROR) {
-                Log.e(TAG, "TTS test failed with ERROR");
-                showTTSPrompt();
-            } else {
-                Log.d(TAG, "TTS test initiated successfully");
+            // Find specific printer
+            BluetoothDevice targetPrinter = findBluetoothPrinter(printerName);
+            if (targetPrinter == null) {
+                Log.e(TAG, "Printer not found: " + printerName);
+                showToast("מדפסת לא נמצאה: " + printerName);
+                return false;
+            }
+            
+            // Connect and print
+            return printToBluetoothDevice(targetPrinter, content);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error sending to Bluetooth printer: " + e.getMessage(), e);
+            showToast("שגיאה בהדפסה: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    private void requestBluetoothPermissions() {
+        String[] permissions = {
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        };
+        
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_BT_PERMISSIONS);
+    }
+    
+    private BluetoothDevice findBluetoothPrinter(String printerName) {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            return null;
+        }
+        
+        // Get paired devices
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+        
+        for (BluetoothDevice device : pairedDevices) {
+            String deviceName = device.getName();
+            Log.d(TAG, "Found paired device: " + deviceName + " (" + device.getAddress() + ")");
+            
+            if (deviceName != null && (deviceName.equals(printerName) || 
+                deviceName.contains("SK58") || deviceName.contains("505E"))) {
+                Log.d(TAG, "Found target printer: " + deviceName);
+                return device;
             }
         }
+        
+        // Try to discover devices if not found in paired list
+        if (bluetoothAdapter.isDiscovering()) {
+            bluetoothAdapter.cancelDiscovery();
+        }
+        
+        Log.d(TAG, "Starting Bluetooth discovery...");
+        bluetoothAdapter.startDiscovery();
+        
+        return null; // For now, return null and let user retry after pairing
+    }
+    
+    private boolean printToBluetoothDevice(BluetoothDevice device, String content) {
+        try {
+            Log.d(TAG, "Connecting to printer: " + device.getName() + " (" + device.getAddress() + ")");
+            
+            // Create Bluetooth socket
+            java.util.UUID uuid = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // SPP UUID
+            BluetoothSocket socket = device.createRfcommSocketToServiceRecord(uuid);
+            
+            // Cancel discovery to improve connection
+            BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+            
+            // Connect to device
+            socket.connect();
+            Log.d(TAG, "Connected to Bluetooth printer");
+            
+            // Send print data
+            OutputStream outputStream = socket.getOutputStream();
+            
+            // Send printer commands for receipt printer (ESC/POS compatible)
+            byte[] initCommand = {0x1B, 0x40}; // Initialize printer
+            outputStream.write(initCommand);
+            
+            // Send content
+            outputStream.write(content.getBytes("UTF-8"));
+            
+            // Send cut command (if supported)
+            byte[] cutCommand = {0x1D, 0x56, 0x00}; // Paper cut
+            outputStream.write(cutCommand);
+            
+            // Close connection
+            outputStream.close();
+            socket.close();
+            
+            Log.d(TAG, "Print job sent successfully");
+            return true;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error printing to Bluetooth device: " + e.getMessage(), e);
+            showToast("שגיאת חיבור למדפסת: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    private void showToast(String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
     
     // JavaScript Interface for TTS
@@ -298,33 +446,18 @@ public class MainActivity extends BridgeActivity {
                         result = tts.setLanguage(java.util.Locale.US);
                         Log.d(TAG, "TTS English fallback result: " + result);
                     }
-                    
-//                    if (result != TextToSpeech.LANG_MISSING_DATA &&
-//                        result != TextToSpeech.LANG_NOT_SUPPORTED) {
-//                        // Test TTS with simple English phrase
-//                        Log.d(TAG, "Testing TTS with English: Hello");
-//                        int testResult = tts.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
-//                        Log.d(TAG, "TTS test result: " + testResult);
-//
-//                        if (testResult == TextToSpeech.ERROR) {
-//                            Log.e(TAG, "TTS test failed");
-//                        } else {
-//                            Log.d(TAG, "TTS test successful - TTS is working");
-//                        }
-//                    }
-//
-//                        java.util.HashMap<String, String> params = new java.util.HashMap<>();
-//                        params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "directSpeak");
 
-                        int speakResult = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utteranceId");
-                        Log.d(TAG, "Direct TTS result: " + speakResult);
-//                    }
+                    int speakResult = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utteranceId");
+                    Log.d(TAG, "Direct TTS result: " + speakResult);
                 } catch (Exception e) {
                     Log.e(TAG, "Direct TTS error: " + e.getMessage());
                 }
-//            }
             }
         }
+    }
+    
+    // JavaScript Interface for Bluetooth Printing
+    public class AndroidPrintInterface {
         
         @JavascriptInterface
         public void printToBluetooth(String printerName, String findId) {
@@ -349,73 +482,6 @@ public class MainActivity extends BridgeActivity {
                 Log.e(TAG, "Error in Bluetooth printing: " + e.getMessage(), e);
                 showToast("שגיאה בהדפסה: " + e.getMessage());
             }
-        }
-        
-        private String createBluetoothPrintContent(String findId) {
-            StringBuilder content = new StringBuilder();
-            content.append("================================\n");
-            content.append("קוד QR לממצא\n");
-            content.append("================================\n");
-            content.append("מזהה: ").append(findId).append("\n");
-            content.append("תאריך: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date())).append("\n");
-            content.append("================================\n");
-            content.append("\n\n");
-            
-            // Note: For actual QR code printing, you would need to:
-            // 1. Generate QR code image
-            // 2. Convert to printer-compatible format
-            // 3. Send as binary data
-            
-            // For now, we send a text representation
-            content.append("[QR CODE: ").append(findId).append("]\n");
-            content.append("סרוק את הקוד לגישה לממצא\n");
-            content.append("\n================================\n");
-            
-            return content.toString();
-        }
-        
-        private boolean sendToBluetoothPrinter(String printerName, String content) {
-            try {
-                // This is a basic implementation
-                // In a real implementation, you would:
-                // 1. Discover Bluetooth devices
-                // 2. Connect to the specific printer
-                // 3. Send data in the printer's expected format
-                
-                // For demonstration, we'll show the print intent
-                Log.d(TAG, "Preparing to send to printer: " + printerName);
-                Log.d(TAG, "Content length: " + content.length() + " characters");
-                
-                // Try to use Android's print framework
-                android.print.PrintManager printManager = (android.print.PrintManager) getSystemService(Context.PRINT_SERVICE);
-                if (printManager != null) {
-                    String jobName = "QR Code - " + printerName;
-                    printManager.print(jobName, null, null);
-                    return true;
-                }
-                
-                // Fallback - show print dialog
-                Intent printIntent = new Intent(Intent.ACTION_SEND);
-                printIntent.setType("text/plain");
-                printIntent.putExtra(Intent.EXTRA_TEXT, content);
-                printIntent.putExtra(Intent.EXTRA_SUBJECT, "QR Code - " + findId);
-                startActivity(Intent.createChooser(printIntent, "שלח למדפסת: " + printerName));
-                
-                return true;
-                
-            } catch (Exception e) {
-                Log.e(TAG, "Error sending to Bluetooth printer: " + e.getMessage(), e);
-                return false;
-            }
-        }
-        
-        private void showToast(String message) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
-                }
-            });
         }
     }
 }
