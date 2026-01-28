@@ -13,6 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -146,7 +147,9 @@
                     <option value="צפת העתיקה">צפת העתיקה</option>
                 </select>
             </div>
-            <button onclick="login()">כניסה למערכת</button>
+            <button onclick="login()" onmousedown="console.log('Login button clicked')">כניסה למערכת</button>
+            <button onclick="console.log('Test: loginScreen=', document.getElementById('loginScreen')); console.log('Test: mainScreen=', document.getElementById('mainScreen'));" style="margin-top: 10px; background: #ff6b6b;">Debug Elements</button>
+            <button onclick="document.getElementById('loginScreen').classList.add('hidden'); document.getElementById('mainScreen').classList.remove('hidden');" style="margin-top: 10px; background: #4ecdc4;">Test Switch</button>
         </div>
         
         
@@ -470,9 +473,23 @@
                 }
                 
                 console.log('About to show main menu');
-                showMainMenu();
+                try {
+                    showMainMenu();
+                    console.log('showMainMenu executed successfully');
+                } catch (e) {
+                    console.error('Error in showMainMenu:', e);
+                    alert('שגיאה במעבר לתפריט הראשי: ' + e.message);
+                    return;
+                }
+                
                 console.log('About to update user info');
-                updateUserInfo();
+                try {
+                    updateUserInfo();
+                    console.log('updateUserInfo executed successfully');
+                } catch (e) {
+                    console.error('Error in updateUserInfo:', e);
+                }
+                
                 console.log('Login completed successfully');
             } catch (error) {
                 console.error('Login error:', error);
@@ -1093,7 +1110,14 @@
             content.style.textAlign = 'center';
             
             
-            const qrCanvas = createQRCode(findId);
+            const qrElement = createQRCode(findId);
+            
+            // Log QR code generation status
+            if (qrElement) {
+                console.log('QR code generated successfully for:', findId);
+            } else {
+                console.error('Failed to generate QR code for:', findId);
+            }
             
             content.innerHTML = `
                 <h2>קוד QR לממצא</h2>
@@ -1101,7 +1125,7 @@
                 <div style="width: 200px; height: 200px; margin: 1rem auto; border: 2px solid #ff69b4; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: white; padding: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                     <div id="qr-container"></div>
                 </div>
-                <p style="color: #666; font-size: 14px;">קוד QR יוצר כאן</p>
+                <p style="color: #666; font-size: 14px;">סרוק את הקוד לגישה מהירה לממצא</p>
                 <div style="display: flex; gap: 10px; justify-content: center; margin-top: 1rem;">
                     <button onclick="printQRCode('${findId}')" style="background: #4ecdc4; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
                         🖨️ הדפס
@@ -1115,80 +1139,158 @@
             
             
             const qrContainer = content.querySelector('#qr-container');
-            if (qrCanvas) {
-                qrCanvas.style.width = '100%';
-                qrCanvas.style.height = '100%';
-                qrContainer.appendChild(qrCanvas);
+            if (qrElement) {
+                qrElement.style.width = '100%';
+                qrElement.style.height = '100%';
+                qrContainer.appendChild(qrElement);
             } else {
-                qrContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px;">קוד QR<br>יוצר כאן</div>';
+                qrContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px; text-align: center;">שגיאה ביצירת<br>קוד QR</div>';
             }
         }
         
         function createQRCode(text) {
-            
+            try {
+                // Create a div element for QR code
+                const qrDiv = document.createElement('div');
+                qrDiv.style.width = '180px';
+                qrDiv.style.height = '180px';
+                qrDiv.style.display = 'flex';
+                qrDiv.style.alignItems = 'center';
+                qrDiv.style.justifyContent = 'center';
+                qrDiv.style.backgroundColor = 'white';
+                
+                // Generate QR code using QRCode.js library
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(qrDiv, {
+                        text: text,
+                        width: 180,
+                        height: 180,
+                        colorDark: '#000000',
+                        colorLight: '#FFFFFF',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    
+                    // Convert to canvas after a short delay to ensure rendering
+                    setTimeout(() => {
+                        return convertDivToCanvas(qrDiv);
+                    }, 100);
+                    
+                    return qrDiv;
+                } else {
+                    console.error('QRCode library not loaded');
+                    return createFallbackQRCode(text);
+                }
+            } catch (error) {
+                console.error('Error creating QR code:', error);
+                // Fallback to simple pattern
+                return createFallbackQRCode(text);
+            }
+        }
+        
+        function convertDivToCanvas(div) {
+            try {
+                // Create canvas from div content
+                const canvas = document.createElement('canvas');
+                const size = 180;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // White background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, size, size);
+                
+                // Find the QR image inside the div
+                const img = div.querySelector('img');
+                if (img && img.complete) {
+                    ctx.drawImage(img, 0, 0, size, size);
+                    return canvas;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error converting div to canvas:', error);
+                return null;
+            }
+        }
+        
+        function createFallbackQRCode(text) {
             const canvas = document.createElement('canvas');
             const size = 180;
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
             
-            
+            // White background
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, size, size);
             
-            
+            // Black border
             ctx.fillStyle = 'black';
-            const cellSize = 4;
-            const pattern = generateQRPattern(text);
+            ctx.fillRect(0, 0, size, 4);
+            ctx.fillRect(0, 0, 4, size);
+            ctx.fillRect(size - 4, 0, 4, size);
+            ctx.fillRect(0, size - 4, size, 4);
             
-            for (let row = 0; row < pattern.length; row++) {
-                for (let col = 0; col < pattern[row].length; col++) {
-                    if (pattern[row][col]) {
-                        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-                    }
-                }
-            }
-            
-            
+            // Center text
             ctx.fillStyle = '#ff69b4';
-            ctx.fillRect(size/2 - 8, size/2 - 8, 16, 16);
+            ctx.fillRect(size/2 - 30, size/2 - 15, 60, 30);
             ctx.fillStyle = 'white';
-            ctx.font = '10px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(text.substring(0, 8), size/2, size/2 + 3);
+            ctx.fillText(text.substring(0, 10), size/2, size/2 + 4);
             
             return canvas;
         }
         
-        function generateQRPattern(text) {
-            
-            const rows = 45;
-            const cols = 45;
-            const pattern = [];
-            let hash = 0;
-            
-            for (let i = 0; i < text.length; i++) {
-                const char = text.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            
-            const random = () => {
-                hash = (hash * 9301 + 49297) % 233280;
-                return hash / 233280;
-            };
-            
-            for (let row = 0; row < rows; row++) {
-                pattern[row] = [];
-                for (let col = 0; col < cols; col++) {
-                    pattern[row][col] = random() > 0.5;
-                }
-            }
-            
-            return pattern;
-        }
+
         
         function printQRCode(findId) {
+            // Check if running in Android WebView with Bluetooth printing support
+            if (typeof window.Android !== 'undefined' && window.Android.printToBluetooth) {
+                try {
+                    // Call Android method to print to Bluetooth printer
+                    window.Android.printToBluetooth('SK58_505E', findId);
+                    console.log('Sending print job to Bluetooth printer: SK58_505E');
+                    
+                    // Show feedback to user
+                    showPrintFeedback(findId);
+                } catch (error) {
+                    console.error('Error sending to Bluetooth printer:', error);
+                    // Fallback to regular print
+                    printToRegularPrinter(findId);
+                }
+            } else {
+                // Fallback to regular browser print
+                printToRegularPrinter(findId);
+            }
+        }
+        
+        function showPrintFeedback(findId) {
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #4CAF50;
+                color: white;
+                padding: 20px 30px;
+                border-radius: 10px;
+                font-size: 18px;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            `;
+            feedback.innerHTML = `🖨️ מדפיס למדפסת BT: SK58_505E<br>ממצא: ${findId}`;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.remove();
+            }, 3000);
+        }
+        
+        function printToRegularPrinter(findId) {
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html>
@@ -1232,6 +1334,14 @@
                             font-size: 16px; 
                             margin: 10px 0;
                         }
+                        .bluetooth-info {
+                            background: #f0f0f0;
+                            padding: 10px;
+                            border-radius: 5px;
+                            margin: 10px 0;
+                            font-size: 14px;
+                            color: #666;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1239,15 +1349,119 @@
                         <h2>קוד QR לממצא</h2>
                         <div class="find-id">${findId}</div>
                         <div class="qr-frame">
-                            <div style="text-align: center; color: #666;">
-                                <div style="font-size: 14px; margin-bottom: 10px;">קודQR</div>
-                                <div style="font-size: 18px; font-weight: bold;">יוצר כאן</div>
+                            <div id="print-qr-container" style="text-align: center; color: #666;">
+                                <div style="font-size: 14px; margin-bottom: 10px;">קוד QR</div>
+                                <div style="font-size: 18px; font-weight: bold;">${findId}</div>
                             </div>
                         </div>
-                        <div class="qr-text">קוד QR יוצר כאן</div>
+                        <div class="qr-text">סרוק את הקוד לגישה מהירה לממצא</div>
+                        <div class="bluetooth-info">
+                            💡 להדפסה ישירה למדפסת Bluetooth SK58_505E,<br>
+                            אנא השתמש באפליקציית Android
+                        </div>
                     </div>
                     <script>
+                        // Generate QR code for printing
                         setTimeout(function() {
+                            try {
+                                const qrContainer = document.getElementById('print-qr-container');
+                                
+                                if (typeof QRCode !== 'undefined') {
+                                    qrContainer.innerHTML = '<div id="print-qr-div" style="width: 200px; height: 200px; margin: 0 auto;"></div>';
+                                    new QRCode(document.getElementById('print-qr-div'), {
+                                        text: '${findId}',
+                                        width: 200,
+                                        height: 200,
+                                        colorDark: '#000000',
+                                        colorLight: '#FFFFFF',
+                                        correctLevel: QRCode.CorrectLevel.H
+                                    });
+                                } else {
+                                    console.error('QRCode library not available in print window');
+                                    qrContainer.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 14px;">ספריית QR לא זמינה</div><div style="font-size: 16px; font-weight: bold;">${findId}</div></div>';
+                                }
+                            } catch (error) {
+                                console.error('Error generating print QR:', error);
+                            }
+                            
+                            window.print();
+                        }, 100);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+                        .qr-container {
+                            border: 3px solid #ff69b4;
+                            border-radius: 15px;
+                            padding: 20px;
+                            display: inline-block;
+                            background: white;
+                        }
+                        h2 { color: #d1477a; margin-bottom: 10px; }
+                        .find-id { 
+                            font-size: 24px; 
+                            font-weight: bold; 
+                            color: #d1477a; 
+                            margin: 10px 0;
+                        }
+                        .qr-frame { 
+                            width: 250px; 
+                            height: 250px; 
+                            border: 2px solid #ff69b4; 
+                            border-radius: 10px; 
+                            margin: 20px auto; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: white;
+                            padding: 10px;
+                        }
+                        .qr-text {
+                            color: #666; 
+                            font-size: 16px; 
+                            margin: 10px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-container">
+                        <h2>קוד QR לממצא</h2>
+                        <div class="find-id">${findId}</div>
+                        <div class="qr-frame">
+                            <div id="print-qr-container" style="text-align: center; color: #666;">
+                                <div style="font-size: 14px; margin-bottom: 10px;">קוד QR</div>
+                                <div style="font-size: 18px; font-weight: bold;">${findId}</div>
+                            </div>
+                        </div>
+                        <div class="qr-text">סרוק את הקוד לגישה מהירה לממצא</div>
+                    </div>
+                    <script>
+                        // Generate QR code for printing
+                        setTimeout(function() {
+                            try {
+                                const qrContainer = document.getElementById('print-qr-container');
+                                
+                                if (typeof QRCode !== 'undefined') {
+                                    qrContainer.innerHTML = '<div id="print-qr-div" style="width: 200px; height: 200px; margin: 0 auto;"></div>';
+                                    new QRCode(document.getElementById('print-qr-div'), {
+                                        text: '${findId}',
+                                        width: 200,
+                                        height: 200,
+                                        colorDark: '#000000',
+                                        colorLight: '#FFFFFF',
+                                        correctLevel: QRCode.CorrectLevel.H
+                                    });
+                                } else {
+                                    console.error('QRCode library not available in print window');
+                                    qrContainer.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 14px;">ספריית QR לא זמינה</div><div style="font-size: 16px; font-weight: bold;">${findId}</div></div>';
+                                }
+                            } catch (error) {
+                                console.error('Error generating print QR:', error);
+                                qrContainer.innerHTML = '<div style="text-align: center; color: #666;"><div style="font-size: 14px;">שגיאה כללית</div><div style="font-size: 16px; font-weight: bold;">${findId}</div></div>';
+                            }
+                            
                             window.print();
                         }, 100);
                     <\/script>
@@ -1396,7 +1610,9 @@
                     this.micButton.classList.add('listening');
                 }
                 this.showStatus('מאזין...', 'listening');
-                
+
+<!--                this.speak("הזן תיאור");-->
+
                 // השמעת קובץ אודיו והמתנה לסיום לפני התחלת ההאזנה
                 const audio = new Audio('enter_description.m4a');
                 audio.play().catch(e => this.showVisualAlert(e));

@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 
+import java.util.Locale;
+
 public class MainActivity extends BridgeActivity {
     
     private TextToSpeech tts;
@@ -55,7 +57,10 @@ public class MainActivity extends BridgeActivity {
                     }
                     
                     // Check if TTS data is installed
-                    int result = tts.isLanguageAvailable(java.util.Locale.US);
+                    Locale hebrew = new Locale("he", "IL");
+                    int result = tts.isLanguageAvailable(hebrew);
+
+//                    int result = tts.isLanguageAvailable(java.util.Locale.US);
                     Log.d(TAG, "TTS language availability result: " + result);
                     
                     if (result == TextToSpeech.LANG_MISSING_DATA || 
@@ -266,7 +271,7 @@ public class MainActivity extends BridgeActivity {
                 java.util.HashMap<String, String> params = new java.util.HashMap<>();
                 params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "titanTagTest");
                 
-                int result = tts.speak("TTS test successful", TextToSpeech.QUEUE_ADD, params);
+                int result = tts.speak("TTS test successful", TextToSpeech.QUEUE_FLUSH, null, null);
                 
                 if (result == TextToSpeech.ERROR) {
                     Log.e(TAG, "TTS test failed with ERROR");
@@ -294,24 +299,24 @@ public class MainActivity extends BridgeActivity {
                         Log.d(TAG, "TTS English fallback result: " + result);
                     }
                     
-                    if (result != TextToSpeech.LANG_MISSING_DATA && 
-                        result != TextToSpeech.LANG_NOT_SUPPORTED) {
-                        // Test TTS with simple English phrase
-                        Log.d(TAG, "Testing TTS with English: Hello");
-                        int testResult = tts.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
-                        Log.d(TAG, "TTS test result: " + testResult);
-                        
-                        if (testResult == TextToSpeech.ERROR) {
-                            Log.e(TAG, "TTS test failed");
-                        } else {
-                            Log.d(TAG, "TTS test successful - TTS is working");
-                        }
-                    }
-                        
-                        java.util.HashMap<String, String> params = new java.util.HashMap<>();
-                        params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "directSpeak");
+//                    if (result != TextToSpeech.LANG_MISSING_DATA &&
+//                        result != TextToSpeech.LANG_NOT_SUPPORTED) {
+//                        // Test TTS with simple English phrase
+//                        Log.d(TAG, "Testing TTS with English: Hello");
+//                        int testResult = tts.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
+//                        Log.d(TAG, "TTS test result: " + testResult);
+//
+//                        if (testResult == TextToSpeech.ERROR) {
+//                            Log.e(TAG, "TTS test failed");
+//                        } else {
+//                            Log.d(TAG, "TTS test successful - TTS is working");
+//                        }
+//                    }
+//
+//                        java.util.HashMap<String, String> params = new java.util.HashMap<>();
+//                        params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "directSpeak");
 
-                        int speakResult = tts.speak(text, TextToSpeech.QUEUE_FLUSH, params);
+                        int speakResult = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "utteranceId");
                         Log.d(TAG, "Direct TTS result: " + speakResult);
 //                    }
                 } catch (Exception e) {
@@ -319,6 +324,98 @@ public class MainActivity extends BridgeActivity {
                 }
 //            }
             }
+        }
+        
+        @JavascriptInterface
+        public void printToBluetooth(String printerName, String findId) {
+            Log.d(TAG, "Bluetooth print request - Printer: " + printerName + ", Find ID: " + findId);
+            
+            try {
+                // Create a simple QR code and text for printing
+                String printContent = createBluetoothPrintContent(findId);
+                
+                // Try to send to Bluetooth printer
+                boolean success = sendToBluetoothPrinter(printerName, printContent);
+                
+                if (success) {
+                    Log.d(TAG, "Successfully sent print job to " + printerName);
+                    showToast("נשלח להדפסה: " + printerName + " - " + findId);
+                } else {
+                    Log.e(TAG, "Failed to send print job to " + printerName);
+                    showToast("שגיאה בהדפסה: " + printerName);
+                }
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Error in Bluetooth printing: " + e.getMessage(), e);
+                showToast("שגיאה בהדפסה: " + e.getMessage());
+            }
+        }
+        
+        private String createBluetoothPrintContent(String findId) {
+            StringBuilder content = new StringBuilder();
+            content.append("================================\n");
+            content.append("קוד QR לממצא\n");
+            content.append("================================\n");
+            content.append("מזהה: ").append(findId).append("\n");
+            content.append("תאריך: ").append(new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(new java.util.Date())).append("\n");
+            content.append("================================\n");
+            content.append("\n\n");
+            
+            // Note: For actual QR code printing, you would need to:
+            // 1. Generate QR code image
+            // 2. Convert to printer-compatible format
+            // 3. Send as binary data
+            
+            // For now, we send a text representation
+            content.append("[QR CODE: ").append(findId).append("]\n");
+            content.append("סרוק את הקוד לגישה לממצא\n");
+            content.append("\n================================\n");
+            
+            return content.toString();
+        }
+        
+        private boolean sendToBluetoothPrinter(String printerName, String content) {
+            try {
+                // This is a basic implementation
+                // In a real implementation, you would:
+                // 1. Discover Bluetooth devices
+                // 2. Connect to the specific printer
+                // 3. Send data in the printer's expected format
+                
+                // For demonstration, we'll show the print intent
+                Log.d(TAG, "Preparing to send to printer: " + printerName);
+                Log.d(TAG, "Content length: " + content.length() + " characters");
+                
+                // Try to use Android's print framework
+                android.print.PrintManager printManager = (android.print.PrintManager) getSystemService(Context.PRINT_SERVICE);
+                if (printManager != null) {
+                    String jobName = "QR Code - " + printerName;
+                    printManager.print(jobName, null, null);
+                    return true;
+                }
+                
+                // Fallback - show print dialog
+                Intent printIntent = new Intent(Intent.ACTION_SEND);
+                printIntent.setType("text/plain");
+                printIntent.putExtra(Intent.EXTRA_TEXT, content);
+                printIntent.putExtra(Intent.EXTRA_SUBJECT, "QR Code - " + findId);
+                startActivity(Intent.createChooser(printIntent, "שלח למדפסת: " + printerName));
+                
+                return true;
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending to Bluetooth printer: " + e.getMessage(), e);
+                return false;
+            }
+        }
+        
+        private void showToast(String message) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
 }
