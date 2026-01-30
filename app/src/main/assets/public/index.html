@@ -98,8 +98,109 @@
             <div class="kv__row"><span>אתר:</span> <span id="kv-site">-</span></div>
             <div class="kv__row"><span>Sheets API:</span> <span id="kv-sheets">לא הוגדר</span></div>
           </div>
+
+          <div class="actions">
+            <button id="btn-go-add-find" class="btn btn--primary" type="button">הוסף ממצא</button>
+            <button id="btn-go-finds" class="btn" type="button">רשימת ממצאים</button>
+          </div>
         </section>
       </main>
+
+      <main id="screen-add-find" class="screen" aria-label="Add Find">
+        <header class="topbar">
+          <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזרה</button>
+          <div class="topbar__brand">הוסף ממצא</div>
+          <div class="topbar__spacer"></div>
+        </header>
+
+        <section class="card">
+          <form id="find-form" class="form" autocomplete="off">
+            <label class="field">
+              <span class="field__label">שם אתר (לא ניתן לעריכה)</span>
+              <input id="find-site" class="field__input" type="text" readonly />
+            </label>
+
+            <label class="field">
+              <span class="field__label">חלקה</span>
+              <input id="find-plot" class="field__input" type="text" inputmode="text" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">שכבה</span>
+              <input id="find-layer" class="field__input" type="text" inputmode="text" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">תיאור טקסטואלי</span>
+              <textarea id="find-description" class="field__input field__input--textarea" rows="3" required></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field__label">תמלול קולי</span>
+              <textarea id="find-transcript" class="field__input field__input--textarea" rows="2" placeholder="מילוי ידני כרגע"></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field__label">מיקום נוכחי</span>
+              <input id="find-location" class="field__input" type="text" readonly />
+            </label>
+
+            <label class="field">
+              <span class="field__label">תאריך ושעה</span>
+              <input id="find-datetime" class="field__input" type="text" readonly />
+            </label>
+
+            <div class="media">
+              <div class="media__head">
+                <div class="media__title">תמונות / וידאו</div>
+                <div class="media__buttons">
+                  <button id="btn-media-camera" class="icon-btn" type="button" title="צילום">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M9 4l1.5-2h3L15 4h3a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3zm3 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-2.1a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8z"
+                      />
+                    </svg>
+                  </button>
+                  <button id="btn-media-add" class="icon-btn" type="button" title="הוספה">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="currentColor" d="M11 5h2v14h-2z" />
+                      <path fill="currentColor" d="M5 11h14v2H5z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <input id="input-media-camera" class="sr-only" type="file" accept="image/*,video/*" capture="environment" multiple />
+              <input id="input-media-add" class="sr-only" type="file" accept="image/*,video/*" multiple />
+
+              <div id="media-grid" class="media-grid" aria-label="media thumbnails"></div>
+            </div>
+
+            <button id="btn-save-find" class="btn btn--primary" type="submit" title="שמירה">שמירה</button>
+          </form>
+        </section>
+      </main>
+
+      <main id="screen-finds" class="screen" aria-label="Finds List">
+        <header class="topbar">
+          <button id="btn-back-from-finds" class="topbar__action" type="button" title="חזרה">חזרה</button>
+          <div class="topbar__brand">רשימת ממצאים</div>
+          <button id="btn-new-find" class="topbar__action" type="button" title="ממצא חדש">ממצא חדש</button>
+        </header>
+
+        <section class="card">
+          <div id="finds-list" class="finds"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="viewer" class="viewer" hidden>
+      <div class="viewer__backdrop" data-close="1"></div>
+      <div class="viewer__panel" role="dialog" aria-modal="true" aria-label="viewer">
+        <button class="viewer__close" type="button" data-close="1" title="סגור">סגור</button>
+        <div id="viewer-body" class="viewer__body"></div>
+      </div>
     </div>
 
     <script type="module" src="js/main.js"></script>

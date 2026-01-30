@@ -8,6 +8,7 @@ export function showScreen(screenId) {
   const screens = document.querySelectorAll('.screen');
   screens.forEach(s => s.classList.remove('screen--active'));
   byId(screenId).classList.add('screen--active');
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 }
 
 export function setText(id, text) {
