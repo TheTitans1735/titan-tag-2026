@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f2aff4" />
+    <title>Titan Tag</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <main id="screen-splash" class="screen screen--active" aria-label="Titan Tag Splash">
+        <div class="splash">
+          <img class="splash__logo" src="assets/titan-tag.png" alt="Titan Tag" />
+          <div class="splash__title">Titan Tag</div>
+          <div class="splash__subtitle">תיעוד ממצאים בשטח</div>
+        </div>
+      </main>
+
+      <main id="screen-login" class="screen" aria-label="Login">
+        <header class="topbar">
+          <div class="topbar__brand">שלום Titan Tag</div>
+        </header>
+
+        <section class="card">
+          <h1 class="card__title">כניסה חד-פעמית</h1>
+          <p class="card__hint">הפרטים נשמרים במכשיר. אפשר לשנות דרך "איפוס משתמש".</p>
+
+          <form id="login-form" class="form" autocomplete="on">
+            <label class="field">
+              <span class="field__label">שם</span>
+              <input id="login-name" class="field__input" type="text" inputmode="text" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">אימייל</span>
+              <input id="login-email" class="field__input" type="email" inputmode="email" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">תפקיד</span>
+              <select id="login-role" class="field__input" required>
+                <option value="" selected disabled>בחר/י</option>
+                <option value="מנהל">מנהל</option>
+                <option value="עובד">עובד</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field__label">אתר משויך</span>
+              <select id="login-site" class="field__input" required>
+                <option value="" selected disabled>בחר/י אתר</option>
+              </select>
+            </label>
+
+            <details class="details">
+              <summary class="details__summary">הגדרות Google Sheets (חד-פעמי)</summary>
+              <label class="field">
+                <span class="field__label">כתובת Web App של Google Apps Script</span>
+                <input id="script-url" class="field__input" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" />
+              </label>
+              <p class="card__hint">אפשר להשאיר ריק כרגע ולהגדיר אחר כך.</p>
+            </details>
+
+            <button class="btn btn--primary" type="submit">כניסה</button>
+          </form>
+        </section>
+      </main>
+
+      <main id="screen-permissions" class="screen" aria-label="Permissions">
+        <header class="topbar">
+          <div id="hello-title" class="topbar__brand">שלום</div>
+        </header>
+
+        <section class="card">
+          <h1 class="card__title">הרשאות</h1>
+          <p class="card__hint">כדי לעבוד בשטח נצטרך הרשאות למצלמה, מיקרופון, מיקום ועוד.</p>
+
+          <button id="btn-request-permissions" class="btn btn--primary" type="button">בקש הרשאות</button>
+          <div id="permissions-status" class="status" role="status" aria-live="polite"></div>
+
+          <button id="btn-continue" class="btn" type="button">המשך</button>
+        </section>
+      </main>
+
+      <main id="screen-home" class="screen" aria-label="Home">
+        <header class="topbar">
+          <div id="home-hello" class="topbar__brand">שלום</div>
+          <button id="btn-reset" class="topbar__action" type="button" title="יציאה">יציאה</button>
+        </header>
+
+        <section class="card">
+          <h1 class="card__title">Titan Tag</h1>
+          <p class="card__hint">כרגע זה שלד בסיסי: מסך לוגו, כניסה חד-פעמית והרשאות.</p>
+          <div class="kv">
+            <div class="kv__row"><span>משתמש:</span> <span id="kv-user">-</span></div>
+            <div class="kv__row"><span>תפקיד:</span> <span id="kv-role">-</span></div>
+            <div class="kv__row"><span>אתר:</span> <span id="kv-site">-</span></div>
+            <div class="kv__row"><span>Sheets API:</span> <span id="kv-sheets">לא הוגדר</span></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

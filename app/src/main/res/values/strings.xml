@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">TitanTagPOC</string>
-    <string name="title_activity_main">TitanTagPOC</string>
+    <string name="app_name">Titan Tag</string>
+    <string name="title_activity_main">Titan Tag</string>
     <string name="package_name">com.example.titantagpoc</string>
     <string name="custom_url_scheme">com.example.titantagpoc</string>
 </resources>
