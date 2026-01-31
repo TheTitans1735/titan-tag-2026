@@ -122,12 +122,16 @@
 
             <label class="field">
               <span class="field__label">חלקה</span>
-              <input id="find-plot" class="field__input" type="text" inputmode="text" required />
+              <select id="find-plot" class="field__input" required>
+                <option value="" selected disabled>בחר/י</option>
+              </select>
             </label>
 
             <label class="field">
               <span class="field__label">שכבה</span>
-              <input id="find-layer" class="field__input" type="text" inputmode="text" required />
+              <select id="find-layer" class="field__input" required>
+                <option value="" selected disabled>בחר/י</option>
+              </select>
             </label>
 
             <label class="field">
@@ -136,8 +140,18 @@
             </label>
 
             <label class="field">
-              <span class="field__label">תמלול קולי</span>
-              <textarea id="find-transcript" class="field__input field__input--textarea" rows="2" placeholder="מילוי ידני כרגע"></textarea>
+              <span class="field__label field__label--row">
+                <span>תמלול קולי</span>
+                <button id="btn-transcribe" class="icon-btn icon-btn--sm" type="button" title="תמלול קולי">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"
+                    />
+                  </svg>
+                </button>
+              </span>
+              <textarea id="find-transcript" class="field__input field__input--textarea" rows="2" placeholder="לחצו על המיקרופון כדי לתמלל"></textarea>
             </label>
 
             <label class="field">
@@ -152,9 +166,9 @@
 
             <div class="media">
               <div class="media__head">
-                <div class="media__title">תמונות / וידאו</div>
+                <div class="media__title">תמונה\וידיאו\הוספה מהגלריה</div>
                 <div class="media__buttons">
-                  <button id="btn-media-camera" class="icon-btn" type="button" title="צילום">
+                  <button id="btn-image-camera" class="icon-btn" type="button" title="תמונה (מצלמה)">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path
                         fill="currentColor"
@@ -162,17 +176,28 @@
                       />
                     </svg>
                   </button>
-                  <button id="btn-media-add" class="icon-btn" type="button" title="הוספה">
+
+                  <button id="btn-image-gallery" class="icon-btn" type="button" title="הוספה מהגלריה">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path fill="currentColor" d="M11 5h2v14h-2z" />
                       <path fill="currentColor" d="M5 11h14v2H5z" />
                     </svg>
                   </button>
+
+                  <button id="btn-video-camera" class="icon-btn" type="button" title="וידיאו (מצלמה)">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        fill="currentColor"
+                        d="M17 10.5V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5l4 4v-11l-4 4z"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              <input id="input-media-camera" class="sr-only" type="file" accept="image/*,video/*" capture="environment" multiple />
-              <input id="input-media-add" class="sr-only" type="file" accept="image/*,video/*" multiple />
+              <input id="input-image-camera" class="sr-only" type="file" accept="image/*" capture="environment" />
+              <input id="input-image-gallery" class="sr-only" type="file" accept="image/*" multiple />
+              <input id="input-video-camera" class="sr-only" type="file" accept="video/*" capture="environment" />
 
               <div id="media-grid" class="media-grid" aria-label="media thumbnails"></div>
             </div>

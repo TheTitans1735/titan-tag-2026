@@ -2,8 +2,9 @@ import { clearUser, getScriptUrl, getUser, setScriptUrl, setUser } from './stora
 import { requestAllPermissions } from './permissions.js';
 import { byId, setStatus, setText, showScreen } from './ui.js';
 import { DEFAULT_SITES } from './sites.js';
-import { addFind, getFinds, newFindId } from './findsStore.js';
+import { addFind, getFindById, getFinds, newFindId, updateFind } from './findsStore.js';
 import { filesToMediaItems } from './media.js';
+import { startHebrewTranscription } from './speech.js';
 
 function populateSites() {
   const select = byId('login-site');
@@ -14,6 +15,40 @@ function populateSites() {
     opt.textContent = name;
     select.appendChild(opt);
   });
+}
+
+function populatePlotAndLayerOptions() {
+  const plot = byId('find-plot');
+  const layer = byId('find-layer');
+
+  // Plot: א..כ
+  const heb = [
+    'א',
+    'ב',
+    'ג',
+    'ד',
+    'ה',
+    'ו',
+    'ז',
+    'ח',
+    'ט',
+    'י',
+    'כ'
+  ];
+  heb.forEach(letter => {
+    const opt = document.createElement('option');
+    opt.value = letter;
+    opt.textContent = letter;
+    plot.appendChild(opt);
+  });
+
+  // Layer: 1..12
+  for (let i = 1; i <= 12; i += 1) {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = String(i);
+    layer.appendChild(opt);
+  }
 }
 
 function normalizeUserInput(raw) {
@@ -155,6 +190,12 @@ function renderFindsList() {
   finds.forEach(f => {
     const card = document.createElement('div');
     card.className = 'find';
+    card.tabIndex = 0;
+    card.role = 'button';
+    card.addEventListener('click', () => startEditFind(f.id));
+    card.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') startEditFind(f.id);
+    });
 
     const top = document.createElement('div');
     top.className = 'find__top';
@@ -201,6 +242,9 @@ async function startAddFind() {
   byId('find-datetime').value = nowText();
   byId('find-location').value = 'מאתר מיקום...';
 
+  byId('find-form').dataset.editId = '';
+  byId('btn-save-find').textContent = 'שמירה';
+
   const media = [];
   byId('find-form').dataset.media = JSON.stringify(media);
   renderMediaGrid(media);
@@ -212,6 +256,42 @@ async function startAddFind() {
   } catch {
     byId('find-location').value = 'לא זמין';
   }
+}
+
+async function startEditFind(findId) {
+  const user = getUser();
+  if (!user) {
+    showScreen('screen-login');
+    return;
+  }
+
+  const find = getFindById(findId);
+  if (!find) {
+    alert('הממצא לא נמצא');
+    return;
+  }
+
+  if (find.site !== user.site) {
+    alert('לא ניתן לערוך ממצא מאתר אחר.');
+    return;
+  }
+
+  byId('find-site').value = find.site;
+  byId('find-plot').value = find.plot || '';
+  byId('find-layer').value = find.layer || '';
+  byId('find-description').value = find.description || '';
+  byId('find-transcript').value = find.transcript || '';
+  byId('find-location').value = find.location || '';
+  byId('find-datetime').value = find.datetimeText || '';
+
+  byId('find-form').dataset.editId = find.id;
+  byId('btn-save-find').textContent = 'עדכון';
+
+  const media = JSON.parse(JSON.stringify(find.media || []));
+  byId('find-form').dataset.media = JSON.stringify(media);
+  renderMediaGrid(media);
+
+  showScreen('screen-add-find');
 }
 
 function boot() {
@@ -336,14 +416,19 @@ function wireMedia() {
     renderMediaGrid(media);
   }
 
-  byId('btn-media-camera').addEventListener('click', () => {
+  byId('btn-image-camera').addEventListener('click', () => {
     readMediaState();
-    byId('input-media-camera').click();
+    byId('input-image-camera').click();
   });
 
-  byId('btn-media-add').addEventListener('click', () => {
+  byId('btn-image-gallery').addEventListener('click', () => {
     readMediaState();
-    byId('input-media-add').click();
+    byId('input-image-gallery').click();
+  });
+
+  byId('btn-video-camera').addEventListener('click', () => {
+    readMediaState();
+    byId('input-video-camera').click();
   });
 
   async function onFilesPicked(input) {
@@ -359,8 +444,9 @@ function wireMedia() {
     }
   }
 
-  byId('input-media-camera').addEventListener('change', ev => onFilesPicked(ev.target));
-  byId('input-media-add').addEventListener('change', ev => onFilesPicked(ev.target));
+  byId('input-image-camera').addEventListener('change', ev => onFilesPicked(ev.target));
+  byId('input-image-gallery').addEventListener('change', ev => onFilesPicked(ev.target));
+  byId('input-video-camera').addEventListener('change', ev => onFilesPicked(ev.target));
 }
 
 function wireFindSave() {
@@ -381,17 +467,21 @@ function wireFindSave() {
       media = [];
     }
 
+    const editId = (byId('find-form').dataset.editId || '').trim();
+    const existing = editId ? getFindById(editId) : null;
+
     const find = {
-      id: newFindId(),
+      id: existing?.id || newFindId(),
       site: user.site,
       plot: byId('find-plot').value.trim(),
       layer: byId('find-layer').value.trim(),
       description: byId('find-description').value.trim(),
       transcript: byId('find-transcript').value.trim(),
-      location: byId('find-location').value.trim(),
-      datetimeText: byId('find-datetime').value.trim(),
-      createdAt: new Date().toISOString(),
-      createdBy: user.email,
+      location: existing?.location || byId('find-location').value.trim(),
+      datetimeText: existing?.datetimeText || byId('find-datetime').value.trim(),
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      createdBy: existing?.createdBy || user.email,
+      updatedAt: editId ? new Date().toISOString() : undefined,
       media
     };
 
@@ -400,14 +490,69 @@ function wireFindSave() {
       return;
     }
 
-    addFind(find);
+    if (editId) {
+      const ok = updateFind(find);
+      if (!ok) {
+        alert('עדכון נכשל: הממצא לא נמצא');
+        return;
+      }
+    } else {
+      addFind(find);
+    }
     renderFindsList();
     showScreen('screen-finds');
   });
 }
 
+function wireTranscription() {
+  const btn = byId('btn-transcribe');
+  const field = byId('find-transcript');
+
+  let session = null;
+  let base = '';
+
+  btn.addEventListener('click', async () => {
+    if (session) {
+      session.stop();
+      session = null;
+      btn.classList.remove('icon-btn--active');
+      return;
+    }
+
+    base = field.value.trim();
+    const basePrefix = base ? `${base} ` : '';
+
+    try {
+      session = await startHebrewTranscription({
+        onStatus: status => {
+          if (status === 'listening') btn.classList.add('icon-btn--active');
+          if (status === 'idle') btn.classList.remove('icon-btn--active');
+        },
+        onText: ({ finalText, interimText }) => {
+          const combined = `${basePrefix}${finalText}${interimText ? ` ${interimText}` : ''}`.trim();
+          field.value = combined;
+        },
+        onEnd: () => {
+          session = null;
+          btn.classList.remove('icon-btn--active');
+        },
+        onError: err => {
+          session = null;
+          btn.classList.remove('icon-btn--active');
+          alert(`שגיאה בזיהוי דיבור: ${err.message}`);
+        }
+      });
+    } catch (err) {
+      session = null;
+      btn.classList.remove('icon-btn--active');
+      alert(err?.message || 'שגיאה בזיהוי דיבור');
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   populateSites();
+  populatePlotAndLayerOptions();
   wireLogin();
   wirePermissions();
   wireReset();
@@ -415,5 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
   wireViewer();
   wireMedia();
   wireFindSave();
+  wireTranscription();
   boot();
 });

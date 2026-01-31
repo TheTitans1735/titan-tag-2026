@@ -102,6 +102,13 @@ body {
   font-weight: 700;
 }
 
+.field__label--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .field__input {
   width: 100%;
   border: 1px solid var(--stroke);
@@ -198,6 +205,16 @@ body {
   height: 46px;
   display: grid;
   place-content: center;
+}
+
+.icon-btn--sm {
+  width: 40px;
+  height: 40px;
+}
+
+.icon-btn--active {
+  background: linear-gradient(180deg, var(--pink), rgba(242, 175, 244, 0.65));
+  box-shadow: 0 10px 26px rgba(31, 26, 36, 0.18);
 }
 
 .icon {

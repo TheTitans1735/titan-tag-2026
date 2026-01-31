@@ -20,10 +20,23 @@ export function getFinds() {
   return Array.isArray(arr) ? arr : [];
 }
 
+export function getFindById(id) {
+  return getFinds().find(f => f?.id === id) || null;
+}
+
 export function addFind(find) {
   const finds = getFinds();
   finds.unshift(find);
   writeJson(KEY_FINDS, finds);
+}
+
+export function updateFind(updated) {
+  const finds = getFinds();
+  const idx = finds.findIndex(f => f?.id === updated?.id);
+  if (idx === -1) return false;
+  finds[idx] = updated;
+  writeJson(KEY_FINDS, finds);
+  return true;
 }
 
 export function newFindId() {
