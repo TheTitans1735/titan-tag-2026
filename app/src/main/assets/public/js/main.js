@@ -316,6 +316,8 @@ async function startAddFind() {
   }
 
   byId('find-site').value = user.site;
+
+  setText('add-find-title', 'הוסף ממצא');
   byId('find-plot').value = '';
   byId('find-layer').value = '';
   byId('find-description').value = '';
@@ -358,6 +360,8 @@ async function startEditFind(findId) {
   }
 
   byId('find-site').value = find.site;
+
+  setText('add-find-title', `עריכת ${find.id}`);
   byId('find-plot').value = find.plot || '';
   byId('find-layer').value = find.layer || '';
   byId('find-description').value = find.description || '';

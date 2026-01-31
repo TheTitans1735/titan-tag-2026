@@ -53,11 +53,17 @@ body {
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(10px);
+  gap: 10px;
 }
 
 .topbar__brand {
   font-weight: 750;
   letter-spacing: 0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .topbar__action {
