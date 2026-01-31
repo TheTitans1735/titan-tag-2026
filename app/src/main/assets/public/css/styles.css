@@ -53,11 +53,17 @@ body {
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(10px);
+  gap: 10px;
 }
 
 .topbar__brand {
   font-weight: 750;
   letter-spacing: 0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .topbar__action {
@@ -412,5 +418,51 @@ body {
     padding: 28px 22px 40px;
     max-width: 520px;
     margin: 0 auto;
+  }
+}
+/* Mic button container positioning */
+.topbar-mic-container {
+  text-align: center;
+  margin: 16px 0 24px 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Mic button styling for Add Find screen */
+.mic-btn {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: none;
+  background: #ff69b4;
+  color: #fff;
+  font-size: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(255, 105, 180, 0.35);
+  transition: all 0.3s ease;
+}
+.mic-btn--inactive {
+  background: #ff69b4;
+  opacity: 0.95;
+}
+.mic-btn--active {
+  background: #ff1493;
+  transform: scale(1.08);
+  box-shadow: 0 16px 32px rgba(255, 20, 147, 0.45);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 16px 32px rgba(255, 20, 147, 0.45);
+  }
+  50% {
+    box-shadow: 0 16px 32px rgba(255, 20, 147, 0.65);
+  }
+  100% {
+    box-shadow: 0 16px 32px rgba(255, 20, 147, 0.45);
   }
 }

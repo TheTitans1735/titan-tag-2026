@@ -8,3 +8,32 @@ export const DEFAULT_SITES = [
   { name: 'תל באר שבע', location: '31.2516,34.7913' },
   { name: 'קומראן', location: '31.7413,35.4602' }
 ];
+
+// Return all known Israeli sites from storage if present, otherwise fall back to defaults
+export function getAllIsraelSites() {
+  try {
+    const raw = localStorage.getItem('sitesIsrael');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch {
+    // ignore parsing errors and fall back to defaults
+  }
+  return DEFAULT_SITES;
+}
+
+// Add a new site (by name) to the Israel sites list in storage
+export function addIsraelSite(name) {
+  const siteName = (name || '').trim();
+  if (!siteName) return false;
+
+  const current = getAllIsraelSites().slice();
+  if (current.find(s => s.name === siteName)) {
+    // already exists
+    return false;
+  }
+  current.push({ name: siteName, location: '' });
+  localStorage.setItem('sitesIsrael', JSON.stringify(current));
+  return true;
+}

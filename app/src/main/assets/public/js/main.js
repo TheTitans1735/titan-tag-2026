@@ -1,22 +1,50 @@
 import { clearUser, getScriptUrl, getUser, setScriptUrl, setUser } from './storage.js';
 import { requestAllPermissions } from './permissions.js';
 import { byId, setStatus, setText, showScreen } from './ui.js';
-import { DEFAULT_SITES } from './sites.js';
+import { getAllIsraelSites, addIsraelSite } from './sites.js';
 import { addFind, deleteFindById, getFindById, getFinds, newFindId, updateFind } from './findsStore.js';
 import { filesToMediaItems } from './media.js';
 import { deleteMediaItem, getMediaItem, putMediaItems } from './mediaStore.js';
 import { startHebrewTranscription } from './speech.js';
+import { speakHebrew } from './speechUtterance.js';
 
 let currentMedia = [];
 const objectUrlById = new Map();
 
 function populateSites() {
   const select = byId('login-site');
-  const names = DEFAULT_SITES.map(s => s.name).sort((a, b) => a.localeCompare(b, 'he'));
+  const names = getAllIsraelSites().map(s => s.name).sort((a, b) => a.localeCompare(b, 'he'));
   names.forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
     opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
+// Show and manage Israeli sites
+function showSitesManager() {
+  // Populate the Israel sites select and show the screen
+  populateSiteNameSelectInSitesScreen();
+  showScreen('screen-sites');
+}
+
+function populateSiteNameSelectInSitesScreen() {
+  const select = byId('site-name');
+  if (!select) return;
+  select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'בחר/י אתר';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  select.appendChild(placeholder);
+
+  const sites = getAllIsraelSites();
+  sites.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = s.name;
     select.appendChild(opt);
   });
 }
@@ -316,6 +344,8 @@ async function startAddFind() {
   }
 
   byId('find-site').value = user.site;
+
+  setText('add-find-title', 'הוסף ממצא');
   byId('find-plot').value = '';
   byId('find-layer').value = '';
   byId('find-description').value = '';
@@ -358,6 +388,8 @@ async function startEditFind(findId) {
   }
 
   byId('find-site').value = find.site;
+
+  setText('add-find-title', `עריכת ${find.id}`);
   byId('find-plot').value = find.plot || '';
   byId('find-layer').value = find.layer || '';
   byId('find-description').value = find.description || '';
@@ -476,6 +508,11 @@ function wireNavigation() {
     showScreen('screen-finds');
   });
 
+  // Open Sites Manager
+  byId('btn-go-sites').addEventListener('click', () => {
+    showSitesManager();
+  });
+
   byId('btn-back-from-add').addEventListener('click', () => {
     showScreen('screen-home');
   });
@@ -486,6 +523,31 @@ function wireNavigation() {
 
   byId('btn-new-find').addEventListener('click', () => {
     startAddFind();
+  });
+  
+  // Back from Sites screen
+  byId('btn-back-from-sites').addEventListener('click', () => {
+    showScreen('screen-home');
+  });
+
+  // Save site in Sites screen
+  byId('btn-save-site').addEventListener('click', () => {
+    const name = byId('site-name').value;
+    if (!name || !name.trim()) {
+      alert('נא לבחור/י שם אתר מתוך הרשימה או להקליד שם אתר חדש');
+      return;
+    }
+    // Try to add; if exists, still proceed
+    const added = (typeof addIsraelSite === 'function') ? addIsraelSite(name) : false;
+    if (added) {
+      // Optional: feedback
+    }
+    // Refresh sites in the Add Site screen and login/site selectors
+    if (typeof populateSiteNameSelectInSitesScreen === 'function') {
+      populateSiteNameSelectInSitesScreen();
+    }
+    // Return to home
+    showScreen('screen-home');
   });
 }
 
@@ -608,48 +670,154 @@ function wireFindSave() {
 
 function wireTranscription() {
   const btn = byId('btn-transcribe');
+  const micBtn = byId('btn-mic');
   const field = byId('find-transcript');
 
   let session = null;
   let base = '';
 
-  btn.addEventListener('click', async () => {
+  // Voice input feature with Hebrew TTS and speech-to-text
+  micBtn?.addEventListener('click', async () => {
+    console.log('Voice input started');
+    
+    // Stop any existing session
     if (session) {
       session.stop();
       session = null;
-      btn.classList.remove('icon-btn--active');
+      micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.add('mic-btn--inactive');
       return;
     }
-
-    base = field.value.trim();
-    const basePrefix = base ? `${base} ` : '';
-
+    
     try {
-      session = await startHebrewTranscription({
-        onStatus: status => {
-          if (status === 'listening') btn.classList.add('icon-btn--active');
-          if (status === 'idle') btn.classList.remove('icon-btn--active');
-        },
-        onText: ({ finalText, interimText }) => {
-          const combined = `${basePrefix}${finalText}${interimText ? ` ${interimText}` : ''}`.trim();
-          field.value = combined;
-        },
-        onEnd: () => {
-          session = null;
-          btn.classList.remove('icon-btn--active');
-        },
-        onError: err => {
-          session = null;
-          btn.classList.remove('icon-btn--active');
-          alert(`שגיאה בזיהוי דיבור: ${err.message}`);
-        }
-      });
-    } catch (err) {
+      // Visual feedback - change to active state
+      micBtn.classList.remove('mic-btn--inactive');
+      micBtn.classList.add('mic-btn--active');
+      
+      // Step 1: Play Hebrew TTS message
+      console.log('Playing Hebrew TTS message');
+      await speakHebrew('אנא הזן תיאור לממצא');
+      console.log('TTS finished, starting speech recognition');
+      
+      // Step 2: Automatically activate speech-to-text
+      await startVoiceInput();
+      
+    } catch (error) {
+      console.error('Voice input error:', error);
       session = null;
-      btn.classList.remove('icon-btn--active');
-      alert(err?.message || 'שגיאה בזיהוי דיבור');
+      micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.add('mic-btn--inactive');
+      
+      // Graceful error handling with fallback prompt
+      if (error.message.includes('לא נתמך') || error.message.includes('not allowed')) {
+        showVoiceInputFallback();
+      } else {
+        showVoiceInputRetry(error.message);
+      }
     }
   });
+
+  async function startVoiceInput() {
+    // Check speech recognition support
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      throw new Error('זיהוי דיבור לא נתמך במכשיר זה');
+    }
+
+    // Request microphone permissions gracefully
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('Microphone permission granted');
+    } catch (permissionError) {
+      throw new Error('נדרשת הרשאת מיקרופון כדי להשתמש בזיהוי דיבור');
+    }
+
+    let silenceTimer = null;
+    let lastSpeechTime = Date.now();
+    
+    const resetSilenceTimer = () => {
+      if (silenceTimer) {
+        clearTimeout(silenceTimer);
+      }
+      silenceTimer = setTimeout(() => {
+        if (session) {
+          console.log('Stopping due to silence');
+          session.stop();
+        }
+      }, 3000); // Stop after 3 seconds of silence
+    };
+
+    session = await startHebrewTranscription({
+      onStatus: status => {
+        console.log('Recognition status:', status);
+        if (status === 'listening') {
+          micBtn.classList.add('mic-btn--active');
+          resetSilenceTimer();
+        } else if (status === 'idle') {
+          micBtn.classList.remove('mic-btn--active');
+          micBtn.classList.add('mic-btn--inactive');
+          if (silenceTimer) clearTimeout(silenceTimer);
+        }
+      },
+      onText: ({ finalText, interimText }) => {
+        console.log('Recognition result:', { finalText, interimText });
+        
+        // Reset timer on any speech activity
+        if (finalText || interimText) {
+          lastSpeechTime = Date.now();
+          resetSilenceTimer();
+        }
+        
+        // Insert final text into Description field (editable)
+        if (finalText && finalText.trim()) {
+          const descriptionField = byId('find-description');
+          const currentText = descriptionField.value || '';
+          const newText = currentText + (currentText ? ' ' : '') + finalText.trim();
+          descriptionField.value = newText;
+          
+          // Focus the description field so user can continue editing
+          descriptionField.focus();
+          descriptionField.setSelectionRange(newText.length, newText.length);
+        }
+      },
+      onEnd: () => {
+        console.log('Voice input completed');
+        session = null;
+        micBtn.classList.remove('mic-btn--active');
+        micBtn.classList.add('mic-btn--inactive');
+        if (silenceTimer) clearTimeout(silenceTimer);
+      },
+      onError: error => {
+        console.error('Recognition error:', error);
+        session = null;
+        micBtn.classList.remove('mic-btn--active');
+        micBtn.classList.add('mic-btn--inactive');
+        if (silenceTimer) clearTimeout(silenceTimer);
+        throw new Error(`שגיאה בזיהוי דיבור: ${error.message}`);
+      }
+    });
+  }
+
+  function showVoiceInputFallback() {
+    const message = 'זיהוי דיבור אינו זמין במכשיר זה. אנא הכנס תיאור באופן ידני לשדה "תיאור טקסטואלי".';
+    
+    if (confirm(message)) {
+      const descriptionField = byId('find-description');
+      descriptionField.focus();
+    }
+  }
+
+  function showVoiceInputRetry(errorMessage) {
+    const message = `אירעה שגיאה בזיהוי דיבור: ${errorMessage}\n\nהאם תרצה לנסות שוב או להכניס את התיאור באופן ידני?`;
+    
+    if (confirm(message)) {
+      // User chose to try again - the function will restart automatically
+      setTimeout(() => micBtn.click(), 100);
+    } else {
+      // User chose manual input
+      const descriptionField = byId('find-description');
+      descriptionField.focus();
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

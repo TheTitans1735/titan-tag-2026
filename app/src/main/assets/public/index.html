@@ -102,16 +102,20 @@
           <div class="actions">
             <button id="btn-go-add-find" class="btn btn--primary" type="button">הוסף ממצא</button>
             <button id="btn-go-finds" class="btn" type="button">רשימת ממצאים</button>
+            <button id="btn-go-sites" class="btn" type="button">הוסף אתר</button>
           </div>
         </section>
       </main>
 
       <main id="screen-add-find" class="screen" aria-label="Add Find">
-        <header class="topbar">
-          <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div class="topbar__brand">הוסף ממצא</div>
-          <div class="topbar__spacer"></div>
-        </header>
+  <header class="topbar">
+    <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזורה</button>
+    <div id="add-find-title" class="topbar__brand">הוסף ממצא</div>
+    <div class="topbar__spacer"></div>
+  </header>
+  <div class="topbar-mic-container">
+    <button id="btn-mic" class="mic-btn mic-btn--inactive" aria-label="מיקרופון" title="מיקרופון">🎤</button>
+  </div>
 
         <section class="card">
           <form id="find-form" class="form" autocomplete="off">
@@ -218,6 +222,28 @@
           <div id="finds-list" class="finds"></div>
         </section>
       </main>
+
+      <!-- Sites Manager Screen -->
+      <main id="screen-sites" class="screen" aria-label="Sites Manager">
+        <header class="topbar">
+          <button id="btn-back-from-sites" class="topbar__action" type="button" title="חזרה">חזרה</button>
+          <div class="topbar__brand">הוסף אתר</div>
+          <div class="topbar__spacer"></div>
+        </header>
+
+        <section class="card">
+          <h1 class="card__title" id="sites-card-title">הוסף אתר</h1>
+
+          <label class="field">
+            <span class="field__label">שם אתר</span>
+            <select id="site-name" class="field__input" required>
+              <option value="" selected disabled>בחר/י אתר</option>
+            </select>
+          </label>
+
+          <button id="btn-save-site" class="btn btn--primary" type="button">שמור</button>
+        </section>
+      </main>
     </div>
 
     <div id="viewer" class="viewer" hidden>
@@ -228,6 +254,9 @@
       </div>
     </div>
 
+    <script>
+      window.Android = window.Android || {};
+    </script>
     <script type="module" src="js/main.js"></script>
   </body>
 </html>
