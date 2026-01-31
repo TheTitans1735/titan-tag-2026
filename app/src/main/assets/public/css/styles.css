@@ -278,6 +278,28 @@ body {
   align-items: baseline;
 }
 
+.find__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.find__delete {
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-content: center;
+}
+
+.find__delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+
 .find__id {
   font-weight: 900;
 }

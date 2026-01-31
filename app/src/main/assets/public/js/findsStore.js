@@ -39,6 +39,14 @@ export function updateFind(updated) {
   return true;
 }
 
+export function deleteFindById(id) {
+  const finds = getFinds();
+  const next = finds.filter(f => f?.id !== id);
+  if (next.length === finds.length) return false;
+  writeJson(KEY_FINDS, next);
+  return true;
+}
+
 export function newFindId() {
   const rand = Math.random().toString(16).slice(2, 8).toUpperCase();
   return `FIND-${Date.now()}-${rand}`;

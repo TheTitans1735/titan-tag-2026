@@ -2,9 +2,13 @@ import { clearUser, getScriptUrl, getUser, setScriptUrl, setUser } from './stora
 import { requestAllPermissions } from './permissions.js';
 import { byId, setStatus, setText, showScreen } from './ui.js';
 import { DEFAULT_SITES } from './sites.js';
-import { addFind, getFindById, getFinds, newFindId, updateFind } from './findsStore.js';
+import { addFind, deleteFindById, getFindById, getFinds, newFindId, updateFind } from './findsStore.js';
 import { filesToMediaItems } from './media.js';
+import { deleteMediaItem, getMediaItem, putMediaItems } from './mediaStore.js';
 import { startHebrewTranscription } from './speech.js';
+
+let currentMedia = [];
+const objectUrlById = new Map();
 
 function populateSites() {
   const select = byId('login-site');
@@ -109,20 +113,63 @@ function openViewer(item) {
   const body = byId('viewer-body');
   body.innerHTML = '';
 
+  const src = getMediaSrc(item);
+  if (!src) {
+    alert('לא ניתן להציג את המדיה (קובץ חסר)');
+    return;
+  }
+
   if (item.kind === 'video') {
     const v = document.createElement('video');
-    v.src = item.dataUrl;
+    v.src = src;
     v.controls = true;
     v.playsInline = true;
     body.appendChild(v);
   } else {
     const img = document.createElement('img');
-    img.src = item.dataUrl;
+    img.src = src;
     img.alt = '';
     body.appendChild(img);
   }
 
   viewer.hidden = false;
+}
+
+function getMediaSrc(item) {
+  if (!item) return '';
+  if (item.dataUrl) return item.dataUrl;
+  if (item.blob) {
+    const existing = objectUrlById.get(item.id);
+    if (existing) return existing;
+    const url = URL.createObjectURL(item.blob);
+    objectUrlById.set(item.id, url);
+    return url;
+  }
+  return '';
+}
+
+function revokeMediaUrl(id) {
+  const url = objectUrlById.get(id);
+  if (!url) return;
+  try {
+    URL.revokeObjectURL(url);
+  } catch {
+    // ignore
+  }
+  objectUrlById.delete(id);
+}
+
+function dataUrlToBlob(dataUrl) {
+  const parts = String(dataUrl).split(',');
+  if (parts.length < 2) return null;
+  const meta = parts[0];
+  const b64 = parts.slice(1).join(',');
+  const m = /data:([^;]+);base64/.exec(meta);
+  const mime = m ? m[1] : 'application/octet-stream';
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
 }
 
 function closeViewer() {
@@ -133,7 +180,6 @@ function closeViewer() {
 }
 
 function renderMediaGrid(media) {
-  byId('find-form').dataset.media = JSON.stringify(media);
   const grid = byId('media-grid');
   grid.innerHTML = '';
 
@@ -145,10 +191,20 @@ function renderMediaGrid(media) {
     remove.className = 'thumb__remove';
     remove.type = 'button';
     remove.textContent = '×';
-    remove.addEventListener('click', ev => {
+    remove.addEventListener('click', async ev => {
       ev.stopPropagation();
       const ok = confirm('הקובץ ימחק רוצה להמשיך?');
       if (!ok) return;
+
+      if (item.stored) {
+        try {
+          await deleteMediaItem(item.id);
+        } catch {
+          // ignore
+        }
+      }
+
+      revokeMediaUrl(item.id);
       const idx = media.findIndex(m => m.id === item.id);
       if (idx >= 0) media.splice(idx, 1);
       renderMediaGrid(media);
@@ -157,7 +213,7 @@ function renderMediaGrid(media) {
     if (item.kind === 'video') {
       const v = document.createElement('video');
       v.className = 'thumb__media';
-      v.src = item.dataUrl;
+      v.src = getMediaSrc(item);
       v.muted = true;
       v.playsInline = true;
       v.preload = 'metadata';
@@ -165,7 +221,7 @@ function renderMediaGrid(media) {
     } else {
       const img = document.createElement('img');
       img.className = 'thumb__media';
-      img.src = item.dataUrl;
+      img.src = getMediaSrc(item);
       img.alt = '';
       wrap.appendChild(img);
     }
@@ -204,11 +260,36 @@ function renderFindsList() {
     id.className = 'find__id';
     id.textContent = f.id;
 
+    const actions = document.createElement('div');
+    actions.className = 'find__actions';
+
+    const del = document.createElement('button');
+    del.className = 'find__delete';
+    del.type = 'button';
+    del.title = 'מחיקה';
+    del.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z"/></svg>';
+    del.addEventListener('click', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const ok = confirm('האם ברצונך למחוק את הממצא?');
+      if (!ok) return;
+      const deleted = deleteFindById(f.id);
+      if (!deleted) {
+        alert('מחיקה נכשלה: הממצא לא נמצא');
+        return;
+      }
+      renderFindsList();
+    });
+
+    actions.appendChild(del);
+
     const dt = document.createElement('div');
     dt.className = 'find__meta';
     dt.textContent = f.datetimeText || '';
 
     top.appendChild(id);
+    top.appendChild(actions);
     top.appendChild(dt);
 
     const meta = document.createElement('div');
@@ -245,9 +326,9 @@ async function startAddFind() {
   byId('find-form').dataset.editId = '';
   byId('btn-save-find').textContent = 'שמירה';
 
-  const media = [];
-  byId('find-form').dataset.media = JSON.stringify(media);
-  renderMediaGrid(media);
+  currentMedia.forEach(m => revokeMediaUrl(m.id));
+  currentMedia = [];
+  renderMediaGrid(currentMedia);
 
   showScreen('screen-add-find');
 
@@ -287,9 +368,32 @@ async function startEditFind(findId) {
   byId('find-form').dataset.editId = find.id;
   byId('btn-save-find').textContent = 'עדכון';
 
-  const media = JSON.parse(JSON.stringify(find.media || []));
-  byId('find-form').dataset.media = JSON.stringify(media);
-  renderMediaGrid(media);
+  currentMedia.forEach(m => revokeMediaUrl(m.id));
+  currentMedia = [];
+
+  const refs = Array.isArray(find.media) ? find.media : [];
+  for (const ref of refs) {
+    if (!ref?.id) continue;
+    try {
+      const stored = await getMediaItem(ref.id);
+      if (stored?.blob) {
+        currentMedia.push({
+          id: stored.id,
+          kind: stored.kind || ref.kind,
+          mime: stored.mime || ref.mime,
+          name: stored.name || ref.name,
+          blob: stored.blob,
+          stored: true
+        });
+      } else {
+        currentMedia.push({ ...ref, stored: false });
+      }
+    } catch {
+      currentMedia.push({ ...ref, stored: false });
+    }
+  }
+
+  renderMediaGrid(currentMedia);
 
   showScreen('screen-add-find');
 }
@@ -394,49 +498,23 @@ function wireViewer() {
 }
 
 function wireMedia() {
-  let media = [];
-  const form = byId('find-form');
-
-  function readMediaState() {
-    try {
-      const raw = form.dataset.media;
-      const parsed = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed)) media = parsed;
-    } catch {
-      media = [];
-    }
-  }
-
-  function writeMediaState() {
-    form.dataset.media = JSON.stringify(media);
-  }
-
-  function sync() {
-    writeMediaState();
-    renderMediaGrid(media);
-  }
-
   byId('btn-image-camera').addEventListener('click', () => {
-    readMediaState();
     byId('input-image-camera').click();
   });
 
   byId('btn-image-gallery').addEventListener('click', () => {
-    readMediaState();
     byId('input-image-gallery').click();
   });
 
   byId('btn-video-camera').addEventListener('click', () => {
-    readMediaState();
     byId('input-video-camera').click();
   });
 
   async function onFilesPicked(input) {
-    readMediaState();
     try {
       const items = await filesToMediaItems(input.files);
-      media.push(...items);
-      sync();
+      currentMedia.push(...items);
+      renderMediaGrid(currentMedia);
     } catch (err) {
       alert(err?.message || 'שגיאה בהוספת מדיה');
     } finally {
@@ -453,19 +531,42 @@ function wireFindSave() {
   byId('find-form').addEventListener('submit', ev => {
     ev.preventDefault();
 
+    void (async () => {
+
     const user = getUser();
     if (!user) {
       showScreen('screen-login');
       return;
     }
 
-    let media = [];
+    // שמירת המדיה ב-IndexedDB כדי שלא יישבר LocalStorage אחרי צילום תמונה
     try {
-      media = JSON.parse(byId('find-form').dataset.media || '[]');
-      if (!Array.isArray(media)) media = [];
-    } catch {
-      media = [];
+      currentMedia.forEach(m => {
+        if (!m) return;
+        if (!m.blob && m.dataUrl) {
+          const blob = dataUrlToBlob(m.dataUrl);
+          if (blob) {
+            m.blob = blob;
+            delete m.dataUrl;
+          }
+        }
+      });
+
+      await putMediaItems(currentMedia.filter(m => m?.blob));
+      currentMedia.forEach(m => {
+        m.stored = true;
+      });
+    } catch (err) {
+      alert(`שמירת מדיה נכשלה: ${err?.message || 'שגיאה'}`);
+      return;
     }
+
+    const mediaRefs = currentMedia.map(m => ({
+      id: m.id,
+      kind: m.kind,
+      mime: m.mime,
+      name: m.name
+    }));
 
     const editId = (byId('find-form').dataset.editId || '').trim();
     const existing = editId ? getFindById(editId) : null;
@@ -482,7 +583,7 @@ function wireFindSave() {
       createdAt: existing?.createdAt || new Date().toISOString(),
       createdBy: existing?.createdBy || user.email,
       updatedAt: editId ? new Date().toISOString() : undefined,
-      media
+      media: mediaRefs
     };
 
     if (!find.plot || !find.layer || !find.description) {
@@ -501,6 +602,7 @@ function wireFindSave() {
     }
     renderFindsList();
     showScreen('screen-finds');
+    })();
   });
 }
 

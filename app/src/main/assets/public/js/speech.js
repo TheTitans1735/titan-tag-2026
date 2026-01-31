@@ -12,7 +12,8 @@ export async function startHebrewTranscription({
   onText,
   onStatus,
   onEnd,
-  onError
+  onError,
+  silenceTimeoutMs = 5000
 }) {
   const SR = getSpeechRecognition();
   if (!SR) {
@@ -29,12 +30,30 @@ export async function startHebrewTranscription({
 
   let finalText = '';
   let interim = '';
+  let lastHeardAt = Date.now();
+  let watchdog = null;
 
   rec.onstart = () => {
+    lastHeardAt = Date.now();
+    if (watchdog) {
+      clearInterval(watchdog);
+      watchdog = null;
+    }
+
+    watchdog = setInterval(() => {
+      if (Date.now() - lastHeardAt >= silenceTimeoutMs) {
+        try {
+          rec.stop();
+        } catch {
+          // ignore
+        }
+      }
+    }, 250);
     onStatus?.('listening');
   };
 
   rec.onresult = ev => {
+    lastHeardAt = Date.now();
     interim = '';
 
     for (let i = ev.resultIndex; i < ev.results.length; i += 1) {
@@ -52,11 +71,19 @@ export async function startHebrewTranscription({
   };
 
   rec.onerror = ev => {
+    if (watchdog) {
+      clearInterval(watchdog);
+      watchdog = null;
+    }
     onStatus?.('error');
     onError?.(new Error(ev?.error || 'speech error'));
   };
 
   rec.onend = () => {
+    if (watchdog) {
+      clearInterval(watchdog);
+      watchdog = null;
+    }
     onStatus?.('idle');
     onEnd?.();
   };
