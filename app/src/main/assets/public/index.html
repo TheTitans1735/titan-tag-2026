@@ -108,14 +108,15 @@
       </main>
 
       <main id="screen-add-find" class="screen" aria-label="Add Find">
-  <header class="topbar">
-    <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזורה</button>
-    <div id="add-find-title" class="topbar__brand">הוסף ממצא</div>
-    <div class="topbar__spacer"></div>
-  </header>
-  <div class="topbar-mic-container">
-    <button id="btn-mic" class="mic-btn mic-btn--inactive" aria-label="מיקרופון" title="מיקרופון">🎤</button>
-  </div>
+        <header class="topbar">
+          <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזרה</button>
+          <div id="add-find-title" class="topbar__brand">הוסף ממצא</div>
+          <div class="topbar__spacer"></div>
+        </header>
+
+        <div class="topbar-mic-container">
+          <button id="btn-mic" class="mic-btn mic-btn--inactive" aria-label="מיקרופון" title="מיקרופון">🎤</button>
+        </div>
 
         <section class="card">
           <form id="find-form" class="form" autocomplete="off">
@@ -123,6 +124,29 @@
               <span class="field__label">שם אתר (לא ניתן לעריכה)</span>
               <input id="find-site" class="field__input" type="text" readonly />
             </label>
+
+            <label class="field">
+              <span class="field__label">מזהה ממצא</span>
+              <input id="find-id" class="field__input" type="text" inputmode="text" autocomplete="off" />
+            </label>
+
+            <div class="qr" aria-label="QR לממצא">
+              <div class="qr__head">
+                <div class="qr__title">QR לממצא</div>
+                <button id="btn-print-qr" class="icon-btn icon-btn--sm" type="button" title="הדפס QR">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M6 7V3h12v4H6zm11 0V5H7v2h10zM6 21v-4H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4H6zm2-2h8v-5H8v5zm12-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div class="qr__frame">
+                <img id="find-qr-image" class="qr__img" alt="QR לממצא" hidden />
+              </div>
+              <div id="qr-status" class="qr__hint" role="status" aria-live="polite"></div>
+            </div>
 
             <label class="field">
               <span class="field__label">חלקה</span>
@@ -141,21 +165,6 @@
             <label class="field">
               <span class="field__label">תיאור טקסטואלי</span>
               <textarea id="find-description" class="field__input field__input--textarea" rows="3" required></textarea>
-            </label>
-
-            <label class="field">
-              <span class="field__label field__label--row">
-                <span>תמלול קולי</span>
-                <button id="btn-transcribe" class="icon-btn icon-btn--sm" type="button" title="תמלול קולי">
-                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      fill="currentColor"
-                      d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"
-                    />
-                  </svg>
-                </button>
-              </span>
-              <textarea id="find-transcript" class="field__input field__input--textarea" rows="2" placeholder="לחצו על המיקרופון כדי לתמלל"></textarea>
             </label>
 
             <label class="field">

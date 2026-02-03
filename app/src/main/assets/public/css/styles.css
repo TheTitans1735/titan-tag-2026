@@ -186,6 +186,50 @@ body {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.qr {
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  padding: 12px 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.qr__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.qr__title {
+  font-weight: 800;
+}
+
+.qr__frame {
+  border: 1px dashed rgba(31, 26, 36, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 10px;
+  display: grid;
+  place-content: center;
+}
+
+.qr__img {
+  width: 230px;
+  height: 230px;
+  background: #fff;
+  border-radius: 10px;
+  display: block;
+}
+
+.qr__hint {
+  margin-top: 8px;
+  color: var(--ink-2);
+  font-size: 13px;
+  min-height: 18px;
+  white-space: pre-wrap;
+}
+
 .media__head {
   display: flex;
   align-items: center;
@@ -433,26 +477,37 @@ body {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  border: none;
-  background: #ff69b4;
-  color: #fff;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
   font-size: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(255, 105, 180, 0.35);
+  box-shadow: 0 12px 28px rgba(31, 26, 36, 0.12);
   transition: all 0.3s ease;
 }
 .mic-btn--inactive {
-  background: #ff69b4;
-  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.92);
+  opacity: 1;
 }
+
+/* Speaking state (pink, no pulse) */
+.mic-btn--speaking {
+  background: #ff1493;
+  color: #fff;
+  border-color: rgba(255, 20, 147, 0.35);
+  box-shadow: 0 14px 30px rgba(255, 20, 147, 0.35);
+}
+
 .mic-btn--active {
   background: #ff1493;
   transform: scale(1.08);
   box-shadow: 0 16px 32px rgba(255, 20, 147, 0.45);
   animation: pulse 1.5s infinite;
+  color: #fff;
+  border-color: rgba(255, 20, 147, 0.35);
 }
 
 @keyframes pulse {

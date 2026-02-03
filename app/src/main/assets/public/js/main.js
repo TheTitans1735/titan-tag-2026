@@ -11,6 +11,57 @@ import { speakHebrew } from './speechUtterance.js';
 let currentMedia = [];
 const objectUrlById = new Map();
 
+function setQrStatus(text) {
+  try {
+    byId('qr-status').textContent = String(text || '');
+  } catch {
+    // ignore
+  }
+}
+
+function updateFindQr() {
+  const id = (byId('find-id')?.value || '').trim();
+  const img = byId('find-qr-image');
+  const printBtn = byId('btn-print-qr');
+
+  const canRender = !!(window.Android && typeof window.Android.getQrPngDataUrl === 'function');
+  const canPrint = !!(window.Android && typeof window.Android.printFindQrToSk58 === 'function');
+
+  if (!id) {
+    img.removeAttribute('src');
+    img.hidden = true;
+    setQrStatus('הזינו מזהה ממצא כדי ליצור QR');
+    printBtn.disabled = true;
+    return;
+  }
+
+  if (!canRender) {
+    img.removeAttribute('src');
+    img.hidden = true;
+    setQrStatus('יצירת QR זמינה באפליקציית Android');
+    printBtn.disabled = true;
+    return;
+  }
+
+  try {
+    const dataUrl = window.Android.getQrPngDataUrl(id);
+    if (dataUrl && String(dataUrl).startsWith('data:image/')) {
+      img.src = dataUrl;
+      img.hidden = false;
+      setQrStatus('');
+      printBtn.disabled = !canPrint;
+      return;
+    }
+  } catch {
+    // ignore
+  }
+
+  img.removeAttribute('src');
+  img.hidden = true;
+  setQrStatus('נכשל ליצור QR');
+  printBtn.disabled = true;
+}
+
 function populateSites() {
   const select = byId('login-site');
   const names = getAllIsraelSites().map(s => s.name).sort((a, b) => a.localeCompare(b, 'he'));
@@ -26,6 +77,31 @@ function populateSites() {
 function showSitesManager() {
   // Populate the Israel sites select and show the screen
   populateSiteNameSelectInSitesScreen();
+
+  // Set current user's site as selected (if exists)
+  const user = getUser();
+  const select = byId('site-name');
+  if (user && select) {
+    try {
+      select.value = user.site;
+    } catch {
+      // ignore
+    }
+  }
+
+  // Update the user's site immediately when selecting a site
+  if (select && !select.dataset.boundChange) {
+    select.addEventListener('change', () => {
+      const nextSite = (select.value || '').trim();
+      const current = getUser();
+      if (!current || !nextSite) return;
+      const updated = { ...current, site: nextSite };
+      setUser(updated);
+      fillHome(updated);
+    });
+    select.dataset.boundChange = '1';
+  }
+
   showScreen('screen-sites');
 }
 
@@ -345,11 +421,13 @@ async function startAddFind() {
 
   byId('find-site').value = user.site;
 
+  byId('find-id').readOnly = false;
+  byId('find-id').value = newFindId();
+
   setText('add-find-title', 'הוסף ממצא');
   byId('find-plot').value = '';
   byId('find-layer').value = '';
   byId('find-description').value = '';
-  byId('find-transcript').value = '';
   byId('find-datetime').value = nowText();
   byId('find-location').value = 'מאתר מיקום...';
 
@@ -359,6 +437,8 @@ async function startAddFind() {
   currentMedia.forEach(m => revokeMediaUrl(m.id));
   currentMedia = [];
   renderMediaGrid(currentMedia);
+
+  updateFindQr();
 
   showScreen('screen-add-find');
 
@@ -389,11 +469,13 @@ async function startEditFind(findId) {
 
   byId('find-site').value = find.site;
 
+  byId('find-id').value = find.id;
+  byId('find-id').readOnly = true;
+
   setText('add-find-title', `עריכת ${find.id}`);
   byId('find-plot').value = find.plot || '';
   byId('find-layer').value = find.layer || '';
   byId('find-description').value = find.description || '';
-  byId('find-transcript').value = find.transcript || '';
   byId('find-location').value = find.location || '';
   byId('find-datetime').value = find.datetimeText || '';
 
@@ -426,6 +508,8 @@ async function startEditFind(findId) {
   }
 
   renderMediaGrid(currentMedia);
+
+  updateFindQr();
 
   showScreen('screen-add-find');
 }
@@ -534,7 +618,7 @@ function wireNavigation() {
   byId('btn-save-site').addEventListener('click', () => {
     const name = byId('site-name').value;
     if (!name || !name.trim()) {
-      alert('נא לבחור/י שם אתר מתוך הרשימה או להקליד שם אתר חדש');
+      alert('נא לבחור/י אתר מתוך הרשימה');
       return;
     }
     // Try to add; if exists, still proceed
@@ -589,6 +673,36 @@ function wireMedia() {
   byId('input-video-camera').addEventListener('change', ev => onFilesPicked(ev.target));
 }
 
+function wireFindQrUi() {
+  const idField = byId('find-id');
+  const printBtn = byId('btn-print-qr');
+
+  let debounce = null;
+
+  idField.addEventListener('input', () => {
+    if (debounce) clearTimeout(debounce);
+    debounce = setTimeout(() => updateFindQr(), 120);
+  });
+
+  printBtn.addEventListener('click', () => {
+    const id = (byId('find-id').value || '').trim();
+    if (!id) {
+      alert('נא להזין מזהה ממצא');
+      return;
+    }
+    if (!(window.Android && typeof window.Android.printFindQrToSk58 === 'function')) {
+      alert('הדפסה זמינה באפליקציית Android בלבד');
+      return;
+    }
+    setQrStatus('שולח להדפסה...');
+    try {
+      window.Android.printFindQrToSk58(id);
+    } catch {
+      alert('הדפסה נכשלה');
+    }
+  });
+}
+
 function wireFindSave() {
   byId('find-form').addEventListener('submit', ev => {
     ev.preventDefault();
@@ -633,13 +747,33 @@ function wireFindSave() {
     const editId = (byId('find-form').dataset.editId || '').trim();
     const existing = editId ? getFindById(editId) : null;
 
+    const requestedIdRaw = (byId('find-id').value || '').trim();
+    const requestedId = requestedIdRaw || (existing?.id || newFindId());
+
+    if (!requestedId) {
+      alert('נא להזין מזהה ממצא');
+      return;
+    }
+
+    if (!editId && !requestedIdRaw) {
+      byId('find-id').value = requestedId;
+      updateFindQr();
+    }
+
+    if (!editId) {
+      const dup = getFindById(requestedId);
+      if (dup) {
+        alert('מזהה ממצא כבר קיים. נא לבחור מזהה אחר');
+        return;
+      }
+    }
+
     const find = {
-      id: existing?.id || newFindId(),
+      id: existing?.id || requestedId,
       site: user.site,
       plot: byId('find-plot').value.trim(),
       layer: byId('find-layer').value.trim(),
       description: byId('find-description').value.trim(),
-      transcript: byId('find-transcript').value.trim(),
       location: existing?.location || byId('find-location').value.trim(),
       datetimeText: existing?.datetimeText || byId('find-datetime').value.trim(),
       createdAt: existing?.createdAt || new Date().toISOString(),
@@ -669,43 +803,121 @@ function wireFindSave() {
 }
 
 function wireTranscription() {
-  const btn = byId('btn-transcribe');
   const micBtn = byId('btn-mic');
-  const field = byId('find-transcript');
 
   let session = null;
-  let base = '';
+  let capturedFinal = '';
+  let capturedFallback = '';
+  let baseDescription = '';
+  let state = 'idle'; // idle | speaking | listening
+  let token = 0;
+  let stopMode = 'none'; // none | cancel | insert
+
+  function explainAndroidSttError(err) {
+    const s = String(err || '');
+    if (s.includes('permission_denied')) return 'נדרשת הרשאת מיקרופון כדי להקליט דיבור';
+    if (s.includes('not_available')) return 'זיהוי דיבור לא זמין במכשיר זה (בדקו Google Voice / Gboard)';
+    if (s.includes('start_failed')) return 'נכשל להתחיל זיהוי דיבור';
+
+    const m = /error:(\d+)/.exec(s);
+    if (!m) return 'שגיאה בזיהוי דיבור';
+    const code = Number(m[1]);
+    // Android SpeechRecognizer error codes
+    switch (code) {
+      case 1:
+        return 'שגיאת רשת/timeout בזיהוי דיבור';
+      case 2:
+        return 'שגיאת רשת בזיהוי דיבור';
+      case 3:
+        return 'שגיאת אודיו בזיהוי דיבור';
+      case 4:
+        return 'שגיאת שרת בזיהוי דיבור';
+      case 5:
+        return 'שגיאת לקוח בזיהוי דיבור (נסו שוב)';
+      case 6:
+        return 'לא זוהה דיבור (timeout)';
+      case 7:
+        return 'לא נמצאה התאמה לדיבור (נסו לדבר ברור יותר)';
+      case 8:
+        return 'זיהוי הדיבור עסוק כרגע (נסו שוב)';
+      case 9:
+        return 'אין הרשאות מתאימות לזיהוי דיבור (מיקרופון)';
+      default:
+        return `שגיאה בזיהוי דיבור (קוד ${code})`;
+    }
+  }
+
+  function setDescriptionLive(text) {
+    const descriptionField = byId('find-description');
+    if (!descriptionField) return;
+    const t = (text || '').trim();
+    const base = (baseDescription || '').trim();
+    descriptionField.value = base ? (t ? `${base} ${t}` : base) : t;
+  }
 
   // Voice input feature with Hebrew TTS and speech-to-text
   micBtn?.addEventListener('click', async () => {
     console.log('Voice input started');
-    
-    // Stop any existing session
-    if (session) {
-      session.stop();
+
+    // Toggle off: stop speaking/listening
+    if (state !== 'idle') {
+      const shouldInsert = state === 'listening' && !!((capturedFinal || capturedFallback).trim());
+      stopMode = shouldInsert ? 'insert' : 'cancel';
+      token += 1;
+      try {
+        session?.stop?.();
+      } catch {
+        // ignore
+      }
+
+      // Restore only if this is a cancel.
+      if (stopMode === 'cancel') setDescriptionLive('');
+
       session = null;
+      state = 'idle';
       micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.remove('mic-btn--speaking');
       micBtn.classList.add('mic-btn--inactive');
       return;
     }
     
     try {
-      // Visual feedback - change to active state
+      const myToken = (token += 1);
+
+      // Visual feedback - pink while speaking
+      state = 'speaking';
       micBtn.classList.remove('mic-btn--inactive');
-      micBtn.classList.add('mic-btn--active');
+      micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.add('mic-btn--speaking');
+
+      capturedFinal = '';
+      capturedFallback = '';
+      stopMode = 'none';
+
+      // Capture the current description as a base and update live into it
+      baseDescription = (byId('find-description')?.value || '').trim();
       
       // Step 1: Play Hebrew TTS message
       console.log('Playing Hebrew TTS message');
       await speakHebrew('אנא הזן תיאור לממצא');
+      if (myToken !== token) return; // cancelled
       console.log('TTS finished, starting speech recognition');
+
+      // Give Android audio focus a moment to settle after TTS
+      await new Promise(r => setTimeout(r, 120));
       
       // Step 2: Automatically activate speech-to-text
+      state = 'listening';
+      micBtn.classList.remove('mic-btn--speaking');
+      micBtn.classList.add('mic-btn--active');
       await startVoiceInput();
       
     } catch (error) {
       console.error('Voice input error:', error);
       session = null;
+      state = 'idle';
       micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.remove('mic-btn--speaking');
       micBtn.classList.add('mic-btn--inactive');
       
       // Graceful error handling with fallback prompt
@@ -718,6 +930,12 @@ function wireTranscription() {
   });
 
   async function startVoiceInput() {
+    // Prefer native Android speech recognizer when available
+    if (window.Android && typeof window.Android.startSpeechRecognition === 'function') {
+      await startAndroidSpeechRecognition();
+      return;
+    }
+
     // Check speech recognition support
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
       throw new Error('זיהוי דיבור לא נתמך במכשיר זה');
@@ -731,70 +949,192 @@ function wireTranscription() {
       throw new Error('נדרשת הרשאת מיקרופון כדי להשתמש בזיהוי דיבור');
     }
 
-    let silenceTimer = null;
-    let lastSpeechTime = Date.now();
-    
-    const resetSilenceTimer = () => {
-      if (silenceTimer) {
-        clearTimeout(silenceTimer);
-      }
-      silenceTimer = setTimeout(() => {
-        if (session) {
-          console.log('Stopping due to silence');
-          session.stop();
-        }
-      }, 3000); // Stop after 3 seconds of silence
-    };
-
     session = await startHebrewTranscription({
+      silenceTimeoutMs: 5000,
       onStatus: status => {
         console.log('Recognition status:', status);
         if (status === 'listening') {
           micBtn.classList.add('mic-btn--active');
-          resetSilenceTimer();
         } else if (status === 'idle') {
           micBtn.classList.remove('mic-btn--active');
+          micBtn.classList.remove('mic-btn--speaking');
           micBtn.classList.add('mic-btn--inactive');
-          if (silenceTimer) clearTimeout(silenceTimer);
         }
       },
       onText: ({ finalText, interimText }) => {
         console.log('Recognition result:', { finalText, interimText });
-        
-        // Reset timer on any speech activity
-        if (finalText || interimText) {
-          lastSpeechTime = Date.now();
-          resetSilenceTimer();
-        }
-        
-        // Insert final text into Description field (editable)
-        if (finalText && finalText.trim()) {
-          const descriptionField = byId('find-description');
-          const currentText = descriptionField.value || '';
-          const newText = currentText + (currentText ? ' ' : '') + finalText.trim();
-          descriptionField.value = newText;
-          
-          // Focus the description field so user can continue editing
-          descriptionField.focus();
-          descriptionField.setSelectionRange(newText.length, newText.length);
-        }
+        const f = (finalText || '').trim();
+        const i = (interimText || '').trim();
+        if (f) capturedFinal = f;
+        if (i) capturedFallback = i;
+
+        // Live update while speaking
+        setDescriptionLive(f || i);
       },
       onEnd: () => {
         console.log('Voice input completed');
         session = null;
+        state = 'idle';
         micBtn.classList.remove('mic-btn--active');
+        micBtn.classList.remove('mic-btn--speaking');
         micBtn.classList.add('mic-btn--inactive');
-        if (silenceTimer) clearTimeout(silenceTimer);
+
+        // If user cancelled via mic click, restore base and exit quietly
+        if (stopMode === 'cancel') {
+          stopMode = 'none';
+          setDescriptionLive('');
+          return;
+        }
+
+        const textToInsert = capturedFinal || capturedFallback;
+        if (textToInsert) {
+          setDescriptionLive(textToInsert);
+          const descriptionField = byId('find-description');
+          if (!descriptionField) return;
+          descriptionField.focus();
+          descriptionField.setSelectionRange(descriptionField.value.length, descriptionField.value.length);
+        } else {
+          // Restore base text if nothing was captured
+          setDescriptionLive('');
+          if (stopMode !== 'cancel') alert('לא נקלט דיבור. נסו שוב.');
+        }
+        stopMode = 'none';
       },
       onError: error => {
         console.error('Recognition error:', error);
         session = null;
+        state = 'idle';
         micBtn.classList.remove('mic-btn--active');
+        micBtn.classList.remove('mic-btn--speaking');
         micBtn.classList.add('mic-btn--inactive');
-        if (silenceTimer) clearTimeout(silenceTimer);
+        setDescriptionLive('');
         throw new Error(`שגיאה בזיהוי דיבור: ${error.message}`);
       }
     });
+  }
+
+  async function startAndroidSpeechRecognition() {
+    const cbName = `__stt_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+    let ended = false;
+    let silenceTimer = null;
+    let watchdogTimer = null;
+
+    const stopTimers = () => {
+      if (silenceTimer) {
+        clearTimeout(silenceTimer);
+        silenceTimer = null;
+      }
+      if (watchdogTimer) {
+        clearTimeout(watchdogTimer);
+        watchdogTimer = null;
+      }
+    };
+
+    const bumpSilenceTimer = () => {
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        try {
+          window.Android.stopSpeechRecognition?.();
+        } catch {
+          // ignore
+        }
+        const hasText = !!((capturedFinal || capturedFallback).trim());
+        finalize(hasText);
+      }, 5000);
+    };
+
+    const startWatchdog = () => {
+      if (watchdogTimer) clearTimeout(watchdogTimer);
+      watchdogTimer = setTimeout(() => {
+        try {
+          window.Android.stopSpeechRecognition?.();
+        } catch {
+          // ignore
+        }
+        finalize(false);
+      }, 20000);
+    };
+
+    const finalize = (insert) => {
+      if (ended) return;
+      ended = true;
+      stopTimers();
+      try {
+        delete window[cbName];
+      } catch {
+        // ignore
+      }
+      session = null;
+      state = 'idle';
+      micBtn.classList.remove('mic-btn--active');
+      micBtn.classList.remove('mic-btn--speaking');
+      micBtn.classList.add('mic-btn--inactive');
+
+      if (!insert) {
+        if (stopMode === 'cancel') {
+          // Restore base when user cancelled
+          setDescriptionLive('');
+        }
+        stopMode = 'none';
+        return;
+      }
+      const textToInsert = capturedFinal || capturedFallback;
+      if (!textToInsert) {
+        setDescriptionLive('');
+        if (stopMode !== 'cancel') alert('לא נקלט דיבור. נסו שוב.');
+        stopMode = 'none';
+        return;
+      }
+      setDescriptionLive(textToInsert);
+      const descriptionField = byId('find-description');
+      if (!descriptionField) return;
+      descriptionField.focus();
+      descriptionField.setSelectionRange(descriptionField.value.length, descriptionField.value.length);
+      stopMode = 'none';
+    };
+
+    window[cbName] = (text, isFinal, err) => {
+      if (err) {
+        console.error('Android STT error', err);
+        if (stopMode !== 'cancel') alert(explainAndroidSttError(err));
+        finalize(false);
+        return;
+      }
+
+      // Reset silence timer on any callback (even empty partials)
+      bumpSilenceTimer();
+      startWatchdog();
+
+      const t = (text || '').trim();
+      if (t) {
+        capturedFallback = t;
+        if (isFinal) capturedFinal = t;
+        // Live update while speaking
+        setDescriptionLive(t);
+      }
+      if (isFinal) {
+        finalize(true);
+      }
+    };
+
+    // Provide a session stop() that cancels the native recognizer
+    session = {
+      stop() {
+        try {
+          window.Android.stopSpeechRecognition?.();
+        } catch {
+          // ignore
+        }
+        const hasText = !!((capturedFinal || capturedFallback).trim());
+        finalize(stopMode === 'insert' && hasText);
+      }
+    };
+
+    // Start timers immediately: stop if user doesn't speak for 5s
+    bumpSilenceTimer();
+    startWatchdog();
+    window.Android.startSpeechRecognition(cbName);
   }
 
   function showVoiceInputFallback() {
@@ -830,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireViewer();
   wireMedia();
   wireFindSave();
+  wireFindQrUi();
   wireTranscription();
   boot();
 });
