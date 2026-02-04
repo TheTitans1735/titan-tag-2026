@@ -103,6 +103,36 @@
             <button id="btn-go-add-find" class="btn btn--primary" type="button">הוסף ממצא</button>
             <button id="btn-go-finds" class="btn" type="button">רשימת ממצאים</button>
             <button id="btn-go-sites" class="btn" type="button">הוסף אתר</button>
+            <button id="btn-go-scan-find-qr" class="btn" type="button">סריקת QR לממצא</button>
+          </div>
+        </section>
+      </main>
+
+      <main id="screen-scan-find-qr" class="screen" aria-label="Scan Find QR">
+        <header class="topbar">
+          <button id="btn-back-from-scan-find-qr" class="topbar__action" type="button" title="חזרה">חזרה</button>
+          <div class="topbar__brand">סריקת QR לממצא</div>
+          <div class="topbar__spacer"></div>
+        </header>
+
+        <section class="card">
+          <div class="scan-hero" aria-label="סריקת QR">
+            <img class="scan-hero__logo" src="assets/titan-tag.png" alt="Titan Tag" />
+            <button id="btn-open-scan-camera" class="scan-hero__camera" type="button" title="פתח מצלמה">
+              <svg class="scan-hero__icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M9 4l1.5-2h3L15 4h3a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3zm3 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-2.1a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div id="scan-status" class="status" role="status" aria-live="polite"></div>
+
+          <div class="scan-preview" hidden>
+            <video id="scan-video" class="scan-preview__video" playsinline muted></video>
+            <div class="scan-preview__frame" aria-hidden="true"></div>
           </div>
         </section>
       </main>

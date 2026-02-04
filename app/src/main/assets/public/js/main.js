@@ -597,11 +597,21 @@ function wireNavigation() {
     showSitesManager();
   });
 
+  byId('btn-go-scan-find-qr').addEventListener('click', () => {
+    showScreen('screen-scan-find-qr');
+    setStatus('scan-status', 'לחצו על אייקון המצלמה כדי להתחיל סריקה');
+  });
+
   byId('btn-back-from-add').addEventListener('click', () => {
     showScreen('screen-home');
   });
 
   byId('btn-back-from-finds').addEventListener('click', () => {
+    showScreen('screen-home');
+  });
+
+  byId('btn-back-from-scan-find-qr').addEventListener('click', () => {
+    stopQrScan();
     showScreen('screen-home');
   });
 
@@ -632,6 +642,116 @@ function wireNavigation() {
     }
     // Return to home
     showScreen('screen-home');
+  });
+}
+
+let scanStream = null;
+let scanRunning = false;
+
+async function stopQrScan() {
+  scanRunning = false;
+  const preview = document.querySelector('.scan-preview');
+  if (preview) preview.hidden = true;
+  try {
+    const video = byId('scan-video');
+    try {
+      video.pause();
+    } catch {
+      // ignore
+    }
+    video.srcObject = null;
+  } catch {
+    // ignore
+  }
+
+  if (scanStream) {
+    try {
+      scanStream.getTracks().forEach(t => t.stop());
+    } catch {
+      // ignore
+    }
+    scanStream = null;
+  }
+}
+
+async function startQrScan() {
+  await stopQrScan();
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setStatus('scan-status', 'מצלמה לא נתמכת במכשיר זה');
+    return;
+  }
+
+  if (!('BarcodeDetector' in window)) {
+    setStatus('scan-status', 'סריקת QR לא נתמכת במכשיר זה (BarcodeDetector חסר)');
+    return;
+  }
+
+  setStatus('scan-status', 'פותח מצלמה...');
+
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+  } catch (err) {
+    setStatus('scan-status', `לא ניתן לפתוח מצלמה: ${err?.message || 'שגיאה'}`);
+    return;
+  }
+
+  const preview = document.querySelector('.scan-preview');
+  if (preview) preview.hidden = false;
+
+  const video = byId('scan-video');
+  video.srcObject = scanStream;
+  try {
+    await video.play();
+  } catch {
+    setStatus('scan-status', 'לא ניתן להציג וידיאו מהמצלמה');
+    await stopQrScan();
+    return;
+  }
+
+  const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+  scanRunning = true;
+  setStatus('scan-status', 'מכוונים את ה-QR למסגרת...');
+
+  const loop = async () => {
+    if (!scanRunning) return;
+    try {
+      const barcodes = await detector.detect(video);
+      const value = barcodes?.[0]?.rawValue;
+      if (value) {
+        scanRunning = false;
+        await stopQrScan();
+        setStatus('scan-status', `נסרק: ${value}`);
+
+        const existing = getFindById(value);
+        if (existing) {
+          await startEditFind(value);
+        } else {
+          await startAddFind();
+          byId('find-id').value = value;
+          updateFindQr();
+        }
+        return;
+      }
+    } catch {
+      // ignore; keep scanning
+    }
+    window.setTimeout(loop, 200);
+  };
+
+  void loop();
+}
+
+function wireFindQrScan() {
+  byId('btn-open-scan-camera').addEventListener('click', () => {
+    void startQrScan();
   });
 }
 
@@ -1171,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireMedia();
   wireFindSave();
   wireFindQrUi();
+  wireFindQrScan();
   wireTranscription();
   boot();
 });
