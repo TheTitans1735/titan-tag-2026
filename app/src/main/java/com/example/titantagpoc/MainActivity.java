@@ -62,6 +62,27 @@ public class MainActivity extends BridgeActivity {
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final String PRINTER_PREFIX = "SK58";
 
+    // Target output for labels/QR
+    // Assumption: most 58mm printers are 203dpi ~= 8 dots/mm.
+    private static final int DOTS_PER_MM = 8;
+
+    // Label size (mm)
+    // User requirement: 3cm (feed/length) x 4.5cm (width)
+    private static final int LABEL_HEIGHT_MM = 30;
+    private static final int LABEL_WIDTH_MM = 45;
+
+    // Gap between prints (mm)
+    private static final int GAP_MM = 15; // 1.5cm
+
+    // QR/Barcode size (mm)
+    // Note: QR is always square.
+    private static final int QR_SIZE_MM = 20;
+
+    // Safety margins: real printers often have non-printable areas and firmware feeds.
+    // Keep a small buffer so the print won't spill into the next label.
+    // 0 = smallest spacing/maximum fill.
+    private static final int SAFE_MARGIN_DOTS = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,7 +135,7 @@ public class MainActivity extends BridgeActivity {
     private Bitmap createQrBitmap(String text, int sizePx) throws Exception {
         Map<EncodeHintType, Object> hints = new HashMap<>();
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
-        hints.put(EncodeHintType.MARGIN, 1);
+        hints.put(EncodeHintType.MARGIN, 0);
 
         QRCodeWriter writer = new QRCodeWriter();
         BitMatrix matrix = writer.encode(text, BarcodeFormat.QR_CODE, sizePx, sizePx, hints);
@@ -127,6 +148,38 @@ public class MainActivity extends BridgeActivity {
             }
         }
         return bmp;
+    }
+
+    private Bitmap createQrLabelBitmap(String text) throws Exception {
+        int labelHeight = LABEL_HEIGHT_MM * DOTS_PER_MM;
+        int labelWidth = LABEL_WIDTH_MM * DOTS_PER_MM;
+        int margin = SAFE_MARGIN_DOTS;
+
+        int maxQr = Math.min(labelWidth - (margin * 2), labelHeight - (margin * 2));
+        int requestedQr = QR_SIZE_MM * DOTS_PER_MM;
+        int qrSize = Math.max(40, Math.min(requestedQr, maxQr));
+
+        Bitmap qr = createQrBitmap(text, qrSize);
+
+        // Print bitmap size matches the physical label; QR is placed as high as possible (top).
+        Bitmap label = Bitmap.createBitmap(labelWidth, labelHeight, Bitmap.Config.ARGB_8888);
+        label.eraseColor(Color.WHITE);
+
+        int x = Math.max(0, (labelWidth - qr.getWidth()) / 2);
+        int y = margin;
+
+        android.graphics.Canvas canvas = new android.graphics.Canvas(label);
+        canvas.drawBitmap(qr, x, y, null);
+        return label;
+    }
+
+    private void feedToNextLabelIfSupported(OutputStream os) {
+        // Many label printers expose a "feed to gap/mark" command in ESC/POS.
+        // If unsupported, printers typically ignore it.
+        try {
+            os.write(new byte[]{ 0x1D, 0x0C }); // GS FF
+        } catch (Exception ignored) {
+        }
     }
 
     private byte[] escPosRasterBytes(Bitmap bmp) {
@@ -243,18 +296,28 @@ public class MainActivity extends BridgeActivity {
             socket.connect();
             OutputStream os = socket.getOutputStream();
 
-            Bitmap qr = createQrBitmap(findId, 256);
-            byte[] qrRaster = escPosRasterBytes(qr);
+            Bitmap label = createQrLabelBitmap(findId);
+            byte[] qrRaster = escPosRasterBytes(label);
 
             // ESC/POS init
             os.write(new byte[]{ 0x1B, 0x40 });
-            // Center
-            os.write(new byte[]{ 0x1B, 0x61, 0x01 });
+
+            // Avoid extra feed between lines (some firmwares add spacing after raster)
+            os.write(new byte[]{ 0x1B, 0x33, 0x00 }); // ESC 3 n (n=0)
+
             // Print QR
             os.write(qrRaster);
-            os.write("\n\n".getBytes("UTF-8"));
-            // Print ID under
-            os.write((findId + "\n\n\n").getBytes("UTF-8"));
+
+            // Gap between QR to QR (feed 1cm)
+            int gapDots = GAP_MM * DOTS_PER_MM;
+            if (gapDots > 0 && gapDots <= 255) {
+                os.write(new byte[]{ 0x1D, 0x4A, (byte)gapDots }); // GS J n
+            }
+
+            // Do not force an extra feed here; we align before each print.
+
+            // Restore default line spacing
+            os.write(new byte[]{ 0x1B, 0x32 });
             os.flush();
 
             String printerName = PRINTER_PREFIX;
