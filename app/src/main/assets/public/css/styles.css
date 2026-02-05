@@ -36,6 +36,7 @@ body {
   min-height: 100vh;
   display: none;
   padding: 18px 16px 34px;
+  overflow-x: hidden;
 }
 
 .screen--active {
@@ -80,6 +81,7 @@ body {
   background: var(--card);
   box-shadow: var(--shadow);
   padding: 16px 14px;
+  max-width: 100%;
 }
 
 .card__title {
@@ -97,15 +99,40 @@ body {
 .form {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .field {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .field__label {
   font-weight: 700;
+}
+
+/* Add Find: make fields more compact */
+#screen-add-find .form {
+  gap: 10px;
+}
+
+#screen-add-find .field {
+  gap: 5px;
+}
+
+#screen-add-find .field__label {
+  font-size: 14px;
+}
+
+#screen-add-find .field__input {
+  padding: 10px 10px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+#screen-add-find .field__input--textarea {
+  line-height: 1.35;
 }
 
 .field__label--row {
@@ -117,6 +144,8 @@ body {
 
 .field__input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--stroke);
   border-radius: 12px;
   padding: 12px 12px;
@@ -433,6 +462,9 @@ body {
 
 .scan-hero__camera {
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   border: 1px solid rgba(31, 26, 36, 0.16);
   background: rgba(255, 255, 255, 0.92);
   color: var(--ink);
@@ -446,7 +478,7 @@ body {
 }
 
 .scan-hero__camera:active {
-  transform: scale(0.98);
+  transform: translate(-50%, -50%) scale(0.98);
   box-shadow: 0 14px 32px rgba(31, 26, 36, 0.16);
 }
 

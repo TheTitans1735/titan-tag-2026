@@ -602,6 +602,37 @@ function wireNavigation() {
     setStatus('scan-status', 'לחצו על אייקון המצלמה כדי להתחיל סריקה');
   });
 
+  byId('btn-share').addEventListener('click', async () => {
+    const choice = prompt('בחר אפשרות שיתוף:\n1) WhatsApp\n2) Email', '1');
+    const c = String(choice || '').trim();
+    if (!c) return;
+
+    const user = getUser();
+    const site = user?.site ? `אתר: ${user.site}` : '';
+    const text = ['Titan Tag', site].filter(Boolean).join('\n');
+
+    // Prefer native share sheet when available
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        // fall through
+      }
+    }
+
+    if (c === '1') {
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+      return;
+    }
+    if (c === '2') {
+      const url = `mailto:?subject=${encodeURIComponent('Titan Tag')}&body=${encodeURIComponent(text)}`;
+      window.location.href = url;
+      return;
+    }
+  });
+
   byId('btn-back-from-add').addEventListener('click', () => {
     showScreen('screen-home');
   });
