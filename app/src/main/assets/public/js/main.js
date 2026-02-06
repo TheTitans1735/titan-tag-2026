@@ -603,34 +603,44 @@ function wireNavigation() {
   });
 
   byId('btn-share').addEventListener('click', async () => {
-    const choice = prompt('בחר אפשרות שיתוף:\n1) WhatsApp\n2) Email', '1');
-    const c = String(choice || '').trim();
-    if (!c) return;
-
     const user = getUser();
     const site = user?.site ? `אתר: ${user.site}` : '';
     const text = ['Titan Tag', site].filter(Boolean).join('\n');
 
-    // Prefer native share sheet when available
-    if (navigator.share) {
+    // Prefer Android native share (reliable inside WebView)
+    if (window.Android && typeof window.Android.shareText === 'function') {
       try {
-        await navigator.share({ text });
+        window.Android.shareText('Titan Tag', text);
         return;
       } catch {
         // fall through
       }
     }
 
-    if (c === '1') {
-      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-      window.open(url, '_blank');
-      return;
+    // Use native share sheet (Capacitor Share plugin if available, else Web Share API)
+    const plugins = window.Capacitor?.Plugins;
+    if (plugins?.Share?.share) {
+      try {
+        await plugins.Share.share({
+          title: 'Titan Tag',
+          text
+        });
+        return;
+      } catch {
+        // fall through
+      }
     }
-    if (c === '2') {
-      const url = `mailto:?subject=${encodeURIComponent('Titan Tag')}&body=${encodeURIComponent(text)}`;
-      window.location.href = url;
-      return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Titan Tag', text });
+        return;
+      } catch {
+        // ignore
+      }
     }
+
+    alert('שיתוף לא נתמך במכשיר זה');
   });
 
   byId('btn-back-from-add').addEventListener('click', () => {

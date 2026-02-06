@@ -250,6 +250,24 @@ public class MainActivity extends BridgeActivity {
         new Thread(() -> doPrintFindQr(id)).start();
     }
 
+    @JavascriptInterface
+    public void shareText(String title, String text) {
+        final String t = (text == null) ? "" : text;
+        final String ttl = (title == null) ? "" : title;
+        runOnUiThread(() -> {
+            try {
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("text/plain");
+                send.putExtra(Intent.EXTRA_SUBJECT, ttl);
+                send.putExtra(Intent.EXTRA_TEXT, t);
+                Intent chooser = Intent.createChooser(send, "שיתוף");
+                startActivity(chooser);
+            } catch (Exception e) {
+                toast("שיתוף לא נתמך במכשיר זה");
+            }
+        });
+    }
+
     private void doPrintFindQr(String findId) {
         if (!hasBtConnectPermission()) {
             toast("אין הרשאת Bluetooth");
