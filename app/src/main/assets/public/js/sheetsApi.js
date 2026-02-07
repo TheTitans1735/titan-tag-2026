@@ -10,7 +10,20 @@ function withQuery(url, params) {
 }
 
 async function fetchJson(url, init) {
-  const res = await fetch(url, init);
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    throw new Error('אין חיבור אינטרנט');
+  }
+
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutMs = 10000;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
+  const res = await fetch(url, {
+    ...(init || {}),
+    signal: controller ? controller.signal : undefined
+  });
+
+  if (timer) clearTimeout(timer);
   const text = await res.text();
   let json;
   try {

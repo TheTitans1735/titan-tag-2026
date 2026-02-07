@@ -182,7 +182,16 @@ function fillHome(user) {
   setText('kv-user', user?.name || '-');
   setText('kv-role', user?.role || '-');
   setText('kv-site', user?.site || '-');
-  setText('kv-sheets', getScriptUrl() || 'לא הוגדר');
+  const scriptUrl = getScriptUrl();
+  if (!scriptUrl) {
+    setText('kv-sheets', 'לא הוגדר');
+    return;
+  }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    setText('kv-sheets', 'לא זמין (אין אינטרנט)');
+    return;
+  }
+  setText('kv-sheets', scriptUrl);
 }
 
 async function getCurrentLocationText() {
@@ -1003,6 +1012,14 @@ function wireTranscription() {
         return 'זיהוי הדיבור עסוק כרגע (נסו שוב)';
       case 9:
         return 'אין הרשאות מתאימות לזיהוי דיבור (מיקרופון)';
+      case 10:
+        return 'יותר מדי בקשות לזיהוי דיבור (נסו שוב בעוד רגע)';
+      case 11:
+        return 'השרת התנתק במהלך זיהוי דיבור (נסו שוב)';
+      case 12:
+        return 'השפה לא נתמכת במנוע זיהוי הדיבור (בדקו/התקינו Google Voice Typing והורידו עברית)';
+      case 13:
+        return 'השפה זמנית לא זמינה לזיהוי דיבור (נסו שוב / בדקו חיבור אינטרנט והגדרות שפה)';
       default:
         return `שגיאה בזיהוי דיבור (קוד ${code})`;
     }
