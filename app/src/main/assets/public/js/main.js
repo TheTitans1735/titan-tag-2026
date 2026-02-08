@@ -607,6 +607,12 @@ function wireNavigation() {
   });
 
   byId('btn-go-scan-find-qr').addEventListener('click', () => {
+    // Reset scan UI each time we enter
+    const hero = document.querySelector('.scan-hero');
+    if (hero) hero.hidden = false;
+    const preview = document.querySelector('.scan-preview');
+    if (preview) preview.hidden = true;
+
     showScreen('screen-scan-find-qr');
     setStatus('scan-status', 'לחצו על אייקון המצלמה כדי להתחיל סריקה');
   });
@@ -702,6 +708,10 @@ async function stopQrScan() {
   scanRunning = false;
   const preview = document.querySelector('.scan-preview');
   if (preview) preview.hidden = true;
+
+  const hero = document.querySelector('.scan-hero');
+  if (hero) hero.hidden = false;
+
   try {
     const video = byId('scan-video');
     try {
@@ -755,6 +765,11 @@ async function startQrScan() {
 
   const preview = document.querySelector('.scan-preview');
   if (preview) preview.hidden = false;
+
+  const hero = document.querySelector('.scan-hero');
+  if (hero) hero.hidden = true;
+
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
   const video = byId('scan-video');
   video.srcObject = scanStream;

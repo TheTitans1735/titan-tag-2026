@@ -102,7 +102,7 @@
           <div class="actions">
             <button id="btn-go-add-find" class="btn btn--primary" type="button">הוסף ממצא</button>
             <button id="btn-go-finds" class="btn" type="button">רשימת ממצאים</button>
-            <button id="btn-go-sites" class="btn" type="button">הוסף אתר</button>
+            <button id="btn-go-sites" class="btn" type="button" title="שנה אתר">שנה אתר</button>
             <button id="btn-go-scan-find-qr" class="btn" type="button">סריקת QR לממצא</button>
             <button id="btn-share" class="btn" type="button">שיתוף</button>
           </div>
@@ -115,6 +115,11 @@
           <div class="topbar__brand">סריקת QR לממצא</div>
           <div class="topbar__spacer"></div>
         </header>
+
+        <div class="scan-preview" hidden>
+          <video id="scan-video" class="scan-preview__video" playsinline muted></video>
+          <div class="scan-preview__frame" aria-hidden="true"></div>
+        </div>
 
         <section class="card">
           <div class="scan-hero" aria-label="סריקת QR">
@@ -130,11 +135,6 @@
           </div>
 
           <div id="scan-status" class="status" role="status" aria-live="polite"></div>
-
-          <div class="scan-preview" hidden>
-            <video id="scan-video" class="scan-preview__video" playsinline muted></video>
-            <div class="scan-preview__frame" aria-hidden="true"></div>
-          </div>
         </section>
       </main>
 
@@ -269,12 +269,12 @@
       <main id="screen-sites" class="screen" aria-label="Sites Manager">
         <header class="topbar">
           <button id="btn-back-from-sites" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div class="topbar__brand">הוסף אתר</div>
+          <div class="topbar__brand">שנה אתר</div>
           <div class="topbar__spacer"></div>
         </header>
 
         <section class="card">
-          <h1 class="card__title" id="sites-card-title">הוסף אתר</h1>
+          <h1 class="card__title" id="sites-card-title">שנה אתר</h1>
 
           <label class="field">
             <span class="field__label">שם אתר</span>
