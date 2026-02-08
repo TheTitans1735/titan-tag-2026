@@ -667,7 +667,7 @@ function wireNavigation() {
   });
 
   byId('btn-back-from-scan-find-qr').addEventListener('click', () => {
-    stopQrScan();
+    stopQrScan({ showHero: true });
     showScreen('screen-home');
   });
 
@@ -704,13 +704,13 @@ function wireNavigation() {
 let scanStream = null;
 let scanRunning = false;
 
-async function stopQrScan() {
+async function stopQrScan({ showHero = true } = {}) {
   scanRunning = false;
   const preview = document.querySelector('.scan-preview');
   if (preview) preview.hidden = true;
 
   const hero = document.querySelector('.scan-hero');
-  if (hero) hero.hidden = false;
+  if (hero) hero.hidden = !showHero;
 
   try {
     const video = byId('scan-video');
@@ -735,7 +735,7 @@ async function stopQrScan() {
 }
 
 async function startQrScan() {
-  await stopQrScan();
+  await stopQrScan({ showHero: true });
 
   if (!navigator.mediaDevices?.getUserMedia) {
     setStatus('scan-status', 'מצלמה לא נתמכת במכשיר זה');
@@ -760,6 +760,7 @@ async function startQrScan() {
     });
   } catch (err) {
     setStatus('scan-status', `לא ניתן לפתוח מצלמה: ${err?.message || 'שגיאה'}`);
+    await stopQrScan({ showHero: true });
     return;
   }
 
@@ -777,7 +778,7 @@ async function startQrScan() {
     await video.play();
   } catch {
     setStatus('scan-status', 'לא ניתן להציג וידיאו מהמצלמה');
-    await stopQrScan();
+    await stopQrScan({ showHero: true });
     return;
   }
 
@@ -792,7 +793,8 @@ async function startQrScan() {
       const value = barcodes?.[0]?.rawValue;
       if (value) {
         scanRunning = false;
-        await stopQrScan();
+        // Keep hero hidden to avoid flicker before navigation
+        await stopQrScan({ showHero: false });
         setStatus('scan-status', `נסרק: ${value}`);
 
         const existing = getFindById(value);
