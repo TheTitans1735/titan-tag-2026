@@ -156,42 +156,21 @@
               <input id="find-site" class="field__input" type="text" readonly />
             </label>
 
-            <label class="field">
-              <span class="field__label">מזהה ממצא</span>
-              <input id="find-id" class="field__input" type="text" inputmode="text" autocomplete="off" />
-            </label>
+            <div class="field-row" aria-label="חלקה ושכבה">
+              <label class="field">
+                <span class="field__label">חלקה</span>
+                <select id="find-plot" class="field__input" required>
+                  <option value="" selected disabled>בחר/י</option>
+                </select>
+              </label>
 
-            <div class="qr" aria-label="QR לממצא">
-              <div class="qr__head">
-                <div class="qr__title">QR לממצא</div>
-                <button id="btn-print-qr" class="icon-btn icon-btn--sm" type="button" title="הדפס QR">
-                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      fill="currentColor"
-                      d="M6 7V3h12v4H6zm11 0V5H7v2h10zM6 21v-4H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4H6zm2-2h8v-5H8v5zm12-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <div class="qr__frame">
-                <img id="find-qr-image" class="qr__img" alt="QR לממצא" hidden />
-              </div>
-              <div id="qr-status" class="qr__hint" role="status" aria-live="polite"></div>
+              <label class="field">
+                <span class="field__label">שכבה</span>
+                <select id="find-layer" class="field__input" required>
+                  <option value="" selected disabled>בחר/י</option>
+                </select>
+              </label>
             </div>
-
-            <label class="field">
-              <span class="field__label">חלקה</span>
-              <select id="find-plot" class="field__input" required>
-                <option value="" selected disabled>בחר/י</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span class="field__label">שכבה</span>
-              <select id="find-layer" class="field__input" required>
-                <option value="" selected disabled>בחר/י</option>
-              </select>
-            </label>
 
             <label class="field">
               <span class="field__label">תיאור טקסטואלי</span>
@@ -247,6 +226,29 @@
             </div>
 
             <button id="btn-save-find" class="btn btn--primary" type="submit" title="שמירה">שמירה</button>
+
+            <label class="field">
+              <span class="field__label">מזהה ממצא</span>
+              <input id="find-id" class="field__input" type="text" inputmode="text" autocomplete="off" />
+            </label>
+
+            <div class="qr" aria-label="QR לממצא">
+              <div class="qr__head">
+                <div class="qr__title">QR לממצא</div>
+                <button id="btn-print-qr" class="icon-btn icon-btn--sm" type="button" title="הדפס QR">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M6 7V3h12v4H6zm11 0V5H7v2h10zM6 21v-4H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4H6zm2-2h8v-5H8v5zm12-6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div class="qr__frame">
+                <img id="find-qr-image" class="qr__img" alt="QR לממצא" hidden />
+              </div>
+              <div id="qr-status" class="qr__hint" role="status" aria-live="polite"></div>
+            </div>
           </form>
         </section>
       </main>

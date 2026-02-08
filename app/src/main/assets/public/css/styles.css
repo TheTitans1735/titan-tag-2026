@@ -142,6 +142,19 @@ body {
   gap: 10px;
 }
 
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 380px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .field__input {
   width: 100%;
   max-width: 100%;
