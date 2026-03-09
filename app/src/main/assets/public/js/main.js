@@ -969,11 +969,6 @@ function wireFindSave() {
       media: mediaRefs
     };
 
-    if (!find.plot || !find.layer || !find.description) {
-      alert('נא למלא: חלקה, שכבה ותיאור');
-      return;
-    }
-
     if (editId) {
       const ok = updateFind(find);
       if (!ok) {
