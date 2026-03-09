@@ -7,6 +7,7 @@ import { filesToMediaItems } from './media.js';
 import { deleteMediaItem, getMediaItem, putMediaItems } from './mediaStore.js';
 import { startHebrewTranscription } from './speech.js';
 import { speakHebrew } from './speechUtterance.js';
+import { applyI18nToDom, getLang, setLang, t } from './i18n.js';
 
 let currentMedia = [];
 const objectUrlById = new Map();
@@ -30,7 +31,7 @@ function updateFindQr() {
   if (!id) {
     img.removeAttribute('src');
     img.hidden = true;
-    setQrStatus('הזינו מזהה ממצא כדי ליצור QR');
+    setQrStatus(t('qr_enter_id'));
     printBtn.disabled = true;
     return;
   }
@@ -38,7 +39,7 @@ function updateFindQr() {
   if (!canRender) {
     img.removeAttribute('src');
     img.hidden = true;
-    setQrStatus('יצירת QR זמינה באפליקציית Android');
+    setQrStatus(t('qr_android_only'));
     printBtn.disabled = true;
     return;
   }
@@ -58,7 +59,7 @@ function updateFindQr() {
 
   img.removeAttribute('src');
   img.hidden = true;
-  setQrStatus('נכשל ליצור QR');
+  setQrStatus(t('qr_failed'));
   printBtn.disabled = true;
 }
 
@@ -111,7 +112,7 @@ function populateSiteNameSelectInSitesScreen() {
   select.innerHTML = '';
   const placeholder = document.createElement('option');
   placeholder.value = '';
-  placeholder.textContent = 'בחר/י אתר';
+  placeholder.textContent = t('select_site');
   placeholder.disabled = true;
   placeholder.selected = true;
   select.appendChild(placeholder);
@@ -166,14 +167,14 @@ function normalizeUserInput(raw) {
   const site = (raw.site || '').trim();
 
   if (!name || !email || !role || !site) {
-    throw new Error('נא למלא את כל השדות');
+    throw new Error(t('login_fill_all_fields'));
   }
 
   return { name, email, role, site };
 }
 
 function setHello(user) {
-  const text = user ? `שלום ${user.name}` : 'שלום';
+  const text = user ? t('hello_user', { name: user.name }) : t('hello_generic');
   setText('hello-title', text);
   setText('home-hello', text);
 }
@@ -184,11 +185,11 @@ function fillHome(user) {
   setText('kv-site', user?.site || '-');
   const scriptUrl = getScriptUrl();
   if (!scriptUrl) {
-    setText('kv-sheets', 'לא הוגדר');
+    setText('kv-sheets', t('kv_sheets_not_set'));
     return;
   }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    setText('kv-sheets', 'לא זמין (אין אינטרנט)');
+    setText('kv-sheets', t('kv_sheets_offline'));
     return;
   }
   setText('kv-sheets', scriptUrl);
@@ -206,7 +207,7 @@ async function getCurrentLocationText() {
     // ignore; fallback to web
   }
 
-  if (!navigator.geolocation) return 'לא זמין';
+  if (!navigator.geolocation) return t('not_available');
 
   const pos = await new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
@@ -216,8 +217,9 @@ async function getCurrentLocationText() {
 
 function nowText() {
   const d = new Date();
-  const date = d.toLocaleDateString('he-IL');
-  const time = d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const locale = getLang() === 'en' ? 'en-US' : 'he-IL';
+  const date = d.toLocaleDateString(locale);
+  const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   return `${date} ${time}`;
 }
 
@@ -228,7 +230,7 @@ function openViewer(item) {
 
   const src = getMediaSrc(item);
   if (!src) {
-    alert('לא ניתן להציג את המדיה (קובץ חסר)');
+    alert(t('viewer_media_missing'));
     return;
   }
 
@@ -306,7 +308,7 @@ function renderMediaGrid(media) {
     remove.textContent = '×';
     remove.addEventListener('click', async ev => {
       ev.stopPropagation();
-      const ok = confirm('הקובץ ימחק רוצה להמשיך?');
+      const ok = confirm(t('confirm_delete_media'));
       if (!ok) return;
 
       if (item.stored) {
@@ -350,7 +352,7 @@ function renderFindsList() {
   const finds = getFinds();
 
   if (!finds.length) {
-    list.textContent = 'אין ממצאים עדיין. לחצו "ממצא חדש" כדי להתחיל.';
+    list.textContent = t('finds_empty');
     return;
   }
 
@@ -379,17 +381,17 @@ function renderFindsList() {
     const del = document.createElement('button');
     del.className = 'find__delete';
     del.type = 'button';
-    del.title = 'מחיקה';
+    del.title = t('delete_title');
     del.innerHTML =
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 7h2v9h-2v-9zm4 0h2v9h-2v-9zM7 10h2v9H7v-9z"/></svg>';
     del.addEventListener('click', ev => {
       ev.preventDefault();
       ev.stopPropagation();
-      const ok = confirm('האם ברצונך למחוק את הממצא?');
+      const ok = confirm(t('confirm_delete_find'));
       if (!ok) return;
       const deleted = deleteFindById(f.id);
       if (!deleted) {
-        alert('מחיקה נכשלה: הממצא לא נמצא');
+        alert(t('delete_failed_missing'));
         return;
       }
       renderFindsList();
@@ -407,11 +409,16 @@ function renderFindsList() {
 
     const meta = document.createElement('div');
     meta.className = 'find__meta';
-    meta.textContent = `אתר: ${f.site} | חלקה: ${f.plot} | שכבה: ${f.layer} | מדיה: ${f.media?.length || 0}`;
+    meta.textContent = t('find_card_meta', {
+      site: f.site,
+      plot: f.plot,
+      layer: f.layer,
+      mediaCount: f.media?.length || 0
+    });
 
     const desc = document.createElement('div');
     desc.className = 'find__meta';
-    desc.textContent = `תיאור: ${f.description}`;
+    desc.textContent = t('find_card_desc', { description: f.description });
 
     card.appendChild(top);
     card.appendChild(meta);
@@ -433,15 +440,15 @@ async function startAddFind() {
   byId('find-id').readOnly = false;
   byId('find-id').value = newFindId();
 
-  setText('add-find-title', 'הוסף ממצא');
+  setText('add-find-title', t('add_find_title_add'));
   byId('find-plot').value = '';
   byId('find-layer').value = '';
   byId('find-description').value = '';
   byId('find-datetime').value = nowText();
-  byId('find-location').value = 'מאתר מיקום...';
+  byId('find-location').value = t('location_fetching');
 
   byId('find-form').dataset.editId = '';
-  byId('btn-save-find').textContent = 'שמירה';
+  byId('btn-save-find').textContent = t('btn_save');
 
   currentMedia.forEach(m => revokeMediaUrl(m.id));
   currentMedia = [];
@@ -454,7 +461,7 @@ async function startAddFind() {
   try {
     byId('find-location').value = await getCurrentLocationText();
   } catch {
-    byId('find-location').value = 'לא זמין';
+    byId('find-location').value = t('not_available');
   }
 }
 
@@ -467,12 +474,12 @@ async function startEditFind(findId) {
 
   const find = getFindById(findId);
   if (!find) {
-    alert('הממצא לא נמצא');
+    alert(t('finding_not_found'));
     return;
   }
 
   if (find.site !== user.site) {
-    alert('לא ניתן לערוך ממצא מאתר אחר.');
+    alert(t('edit_other_site_not_allowed'));
     return;
   }
 
@@ -481,7 +488,7 @@ async function startEditFind(findId) {
   byId('find-id').value = find.id;
   byId('find-id').readOnly = true;
 
-  setText('add-find-title', `עריכת ${find.id}`);
+  setText('add-find-title', t('add_find_title_edit', { id: find.id }));
   byId('find-plot').value = find.plot || '';
   byId('find-layer').value = find.layer || '';
   byId('find-description').value = find.description || '';
@@ -489,7 +496,7 @@ async function startEditFind(findId) {
   byId('find-datetime').value = find.datetimeText || '';
 
   byId('find-form').dataset.editId = find.id;
-  byId('btn-save-find').textContent = 'עדכון';
+  byId('btn-save-find').textContent = t('btn_update');
 
   currentMedia.forEach(m => revokeMediaUrl(m.id));
   currentMedia = [];
@@ -559,14 +566,14 @@ function wireLogin() {
       setStatus('permissions-status', '');
       showScreen('screen-permissions');
     } catch (err) {
-      alert(err?.message || 'שגיאה');
+      alert(err?.message || t('error_generic'));
     }
   });
 }
 
 function wirePermissions() {
   byId('btn-request-permissions').addEventListener('click', async () => {
-    setStatus('permissions-status', 'מבקש הרשאות...');
+    setStatus('permissions-status', t('permissions_requesting'));
     const results = await requestAllPermissions();
     setStatus('permissions-status', results);
   });
@@ -584,7 +591,7 @@ function wirePermissions() {
 
 function wireReset() {
   byId('btn-reset').addEventListener('click', () => {
-    const ok = confirm('לצאת מהמשתמש הנוכחי?');
+    const ok = confirm(t('logout_confirm'));
     if (!ok) return;
     clearUser();
     showScreen('screen-login');
@@ -614,12 +621,12 @@ function wireNavigation() {
     if (preview) preview.hidden = true;
 
     showScreen('screen-scan-find-qr');
-    setStatus('scan-status', 'לחצו על אייקון המצלמה כדי להתחיל סריקה');
+    setStatus('scan-status', t('scan_status_hint'));
   });
 
   byId('btn-share').addEventListener('click', async () => {
     const user = getUser();
-    const site = user?.site ? `אתר: ${user.site}` : '';
+    const site = user?.site ? t('site_share_prefix', { site: user.site }) : '';
     const text = ['Titan Tag', site].filter(Boolean).join('\n');
 
     // Prefer Android native share (reliable inside WebView)
@@ -655,7 +662,7 @@ function wireNavigation() {
       }
     }
 
-    alert('שיתוף לא נתמך במכשיר זה');
+    alert(t('share_not_supported'));
   });
 
   byId('btn-back-from-add').addEventListener('click', () => {
@@ -684,7 +691,7 @@ function wireNavigation() {
   byId('btn-save-site').addEventListener('click', () => {
     const name = byId('site-name').value;
     if (!name || !name.trim()) {
-      alert('נא לבחור/י אתר מתוך הרשימה');
+      alert(t('sites_choose_from_list'));
       return;
     }
     // Try to add; if exists, still proceed
@@ -738,16 +745,16 @@ async function startQrScan() {
   await stopQrScan({ showHero: true });
 
   if (!navigator.mediaDevices?.getUserMedia) {
-    setStatus('scan-status', 'מצלמה לא נתמכת במכשיר זה');
+    setStatus('scan-status', t('scan_camera_not_supported'));
     return;
   }
 
   if (!('BarcodeDetector' in window)) {
-    setStatus('scan-status', 'סריקת QR לא נתמכת במכשיר זה (BarcodeDetector חסר)');
+    setStatus('scan-status', t('scan_barcode_not_supported'));
     return;
   }
 
-  setStatus('scan-status', 'פותח מצלמה...');
+  setStatus('scan-status', t('scan_opening_camera'));
 
   try {
     scanStream = await navigator.mediaDevices.getUserMedia({
@@ -759,7 +766,7 @@ async function startQrScan() {
       audio: false
     });
   } catch (err) {
-    setStatus('scan-status', `לא ניתן לפתוח מצלמה: ${err?.message || 'שגיאה'}`);
+    setStatus('scan-status', t('scan_open_failed', { message: err?.message || t('error_generic') }));
     await stopQrScan({ showHero: true });
     return;
   }
@@ -777,14 +784,14 @@ async function startQrScan() {
   try {
     await video.play();
   } catch {
-    setStatus('scan-status', 'לא ניתן להציג וידיאו מהמצלמה');
+    setStatus('scan-status', t('scan_video_failed'));
     await stopQrScan({ showHero: true });
     return;
   }
 
   const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
   scanRunning = true;
-  setStatus('scan-status', 'מכוונים את ה-QR למסגרת...');
+  setStatus('scan-status', t('scan_aiming'));
 
   const loop = async () => {
     if (!scanRunning) return;
@@ -795,7 +802,7 @@ async function startQrScan() {
         scanRunning = false;
         // Keep hero hidden to avoid flicker before navigation
         await stopQrScan({ showHero: false });
-        setStatus('scan-status', `נסרק: ${value}`);
+        setStatus('scan-status', t('scan_scanned', { value }));
 
         const existing = getFindById(value);
         if (existing) {
@@ -849,7 +856,7 @@ function wireMedia() {
       currentMedia.push(...items);
       renderMediaGrid(currentMedia);
     } catch (err) {
-      alert(err?.message || 'שגיאה בהוספת מדיה');
+      alert(err?.message || t('media_add_error'));
     } finally {
       input.value = '';
     }
@@ -874,18 +881,18 @@ function wireFindQrUi() {
   printBtn.addEventListener('click', () => {
     const id = (byId('find-id').value || '').trim();
     if (!id) {
-      alert('נא להזין מזהה ממצא');
+      alert(t('find_id_required'));
       return;
     }
     if (!(window.Android && typeof window.Android.printFindQrToSk58 === 'function')) {
-      alert('הדפסה זמינה באפליקציית Android בלבד');
+      alert(t('qr_print_android_only'));
       return;
     }
-    setQrStatus('שולח להדפסה...');
+    setQrStatus(t('qr_print_sending'));
     try {
       window.Android.printFindQrToSk58(id);
     } catch {
-      alert('הדפסה נכשלה');
+      alert(t('qr_print_failed'));
     }
   });
 }
@@ -920,7 +927,7 @@ function wireFindSave() {
         m.stored = true;
       });
     } catch (err) {
-      alert(`שמירת מדיה נכשלה: ${err?.message || 'שגיאה'}`);
+      alert(t('media_save_failed', { message: err?.message || t('error_generic') }));
       return;
     }
 
@@ -938,7 +945,7 @@ function wireFindSave() {
     const requestedId = requestedIdRaw || (existing?.id || newFindId());
 
     if (!requestedId) {
-      alert('נא להזין מזהה ממצא');
+      alert(t('find_id_required'));
       return;
     }
 
@@ -950,7 +957,7 @@ function wireFindSave() {
     if (!editId) {
       const dup = getFindById(requestedId);
       if (dup) {
-        alert('מזהה ממצא כבר קיים. נא לבחור מזהה אחר');
+        alert(t('find_id_exists'));
         return;
       }
     }
@@ -972,7 +979,7 @@ function wireFindSave() {
     if (editId) {
       const ok = updateFind(find);
       if (!ok) {
-        alert('עדכון נכשל: הממצא לא נמצא');
+        alert(t('update_failed_not_found'));
         return;
       }
     } else {
@@ -997,43 +1004,43 @@ function wireTranscription() {
 
   function explainAndroidSttError(err) {
     const s = String(err || '');
-    if (s.includes('permission_denied')) return 'נדרשת הרשאת מיקרופון כדי להקליט דיבור';
-    if (s.includes('not_available')) return 'זיהוי דיבור לא זמין במכשיר זה (בדקו Google Voice / Gboard)';
-    if (s.includes('start_failed')) return 'נכשל להתחיל זיהוי דיבור';
+    if (s.includes('permission_denied')) return t('stt_android_permission_denied');
+    if (s.includes('not_available')) return t('stt_android_not_available');
+    if (s.includes('start_failed')) return t('stt_android_start_failed');
 
     const m = /error:(\d+)/.exec(s);
-    if (!m) return 'שגיאה בזיהוי דיבור';
+    if (!m) return t('stt_android_unknown');
     const code = Number(m[1]);
     // Android SpeechRecognizer error codes
     switch (code) {
       case 1:
-        return 'שגיאת רשת/timeout בזיהוי דיבור';
+        return t('stt_android_code_1');
       case 2:
-        return 'שגיאת רשת בזיהוי דיבור';
+        return t('stt_android_code_2');
       case 3:
-        return 'שגיאת אודיו בזיהוי דיבור';
+        return t('stt_android_code_3');
       case 4:
-        return 'שגיאת שרת בזיהוי דיבור';
+        return t('stt_android_code_4');
       case 5:
-        return 'שגיאת לקוח בזיהוי דיבור (נסו שוב)';
+        return t('stt_android_code_5');
       case 6:
-        return 'לא זוהה דיבור (timeout)';
+        return t('stt_android_code_6');
       case 7:
-        return 'לא נמצאה התאמה לדיבור (נסו לדבר ברור יותר)';
+        return t('stt_android_code_7');
       case 8:
-        return 'זיהוי הדיבור עסוק כרגע (נסו שוב)';
+        return t('stt_android_code_8');
       case 9:
-        return 'אין הרשאות מתאימות לזיהוי דיבור (מיקרופון)';
+        return t('stt_android_code_9');
       case 10:
-        return 'יותר מדי בקשות לזיהוי דיבור (נסו שוב בעוד רגע)';
+        return t('stt_android_code_10');
       case 11:
-        return 'השרת התנתק במהלך זיהוי דיבור (נסו שוב)';
+        return t('stt_android_code_11');
       case 12:
-        return 'השפה לא נתמכת במנוע זיהוי הדיבור (בדקו/התקינו Google Voice Typing והורידו עברית)';
+        return t('stt_android_code_12');
       case 13:
-        return 'השפה זמנית לא זמינה לזיהוי דיבור (נסו שוב / בדקו חיבור אינטרנט והגדרות שפה)';
+        return t('stt_android_code_13');
       default:
-        return `שגיאה בזיהוי דיבור (קוד ${code})`;
+        return t('stt_android_code_other', { code });
     }
   }
 
@@ -1089,7 +1096,7 @@ function wireTranscription() {
       
       // Step 1: Play Hebrew TTS message
       console.log('Playing Hebrew TTS message');
-      await speakHebrew('אנא הזן תיאור לממצא');
+      await speakHebrew(t('stt_prompt'));
       if (myToken !== token) return; // cancelled
       console.log('TTS finished, starting speech recognition');
 
@@ -1111,7 +1118,7 @@ function wireTranscription() {
       micBtn.classList.add('mic-btn--inactive');
       
       // Graceful error handling with fallback prompt
-      if (error.message.includes('לא נתמך') || error.message.includes('not allowed')) {
+      if (error.code === 'stt_not_supported' || error.code === 'mic_permission_required') {
         showVoiceInputFallback();
       } else {
         showVoiceInputRetry(error.message);
@@ -1128,7 +1135,9 @@ function wireTranscription() {
 
     // Check speech recognition support
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      throw new Error('זיהוי דיבור לא נתמך במכשיר זה');
+      const err = new Error(t('stt_not_supported_device'));
+      err.code = 'stt_not_supported';
+      throw err;
     }
 
     // Request microphone permissions gracefully
@@ -1136,7 +1145,9 @@ function wireTranscription() {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('Microphone permission granted');
     } catch (permissionError) {
-      throw new Error('נדרשת הרשאת מיקרופון כדי להשתמש בזיהוי דיבור');
+      const err = new Error(t('stt_permission_required'));
+      err.code = 'mic_permission_required';
+      throw err;
     }
 
     session = await startHebrewTranscription({
@@ -1186,7 +1197,7 @@ function wireTranscription() {
         } else {
           // Restore base text if nothing was captured
           setDescriptionLive('');
-          if (stopMode !== 'cancel') alert('לא נקלט דיבור. נסו שוב.');
+          if (stopMode !== 'cancel') alert(t('stt_not_captured'));
         }
         stopMode = 'none';
       },
@@ -1198,7 +1209,7 @@ function wireTranscription() {
         micBtn.classList.remove('mic-btn--speaking');
         micBtn.classList.add('mic-btn--inactive');
         setDescriptionLive('');
-        throw new Error(`שגיאה בזיהוי דיבור: ${error.message}`);
+        throw new Error(`${t('stt_android_unknown')}: ${error.message}`);
       }
     });
   }
@@ -1272,7 +1283,7 @@ function wireTranscription() {
       const textToInsert = capturedFinal || capturedFallback;
       if (!textToInsert) {
         setDescriptionLive('');
-        if (stopMode !== 'cancel') alert('לא נקלט דיבור. נסו שוב.');
+        if (stopMode !== 'cancel') alert(t('stt_not_captured'));
         stopMode = 'none';
         return;
       }
@@ -1328,7 +1339,7 @@ function wireTranscription() {
   }
 
   function showVoiceInputFallback() {
-    const message = 'זיהוי דיבור אינו זמין במכשיר זה. אנא הכנס תיאור באופן ידני לשדה "תיאור טקסטואלי".';
+    const message = t('stt_fallback_msg');
     
     if (confirm(message)) {
       const descriptionField = byId('find-description');
@@ -1337,7 +1348,7 @@ function wireTranscription() {
   }
 
   function showVoiceInputRetry(errorMessage) {
-    const message = `אירעה שגיאה בזיהוי דיבור: ${errorMessage}\n\nהאם תרצה לנסות שוב או להכניס את התיאור באופן ידני?`;
+    const message = t('stt_retry_msg', { message: errorMessage });
     
     if (confirm(message)) {
       // User chose to try again - the function will restart automatically
@@ -1350,9 +1361,58 @@ function wireTranscription() {
   }
 }
 
+function wireLanguage() {
+  const applyPressed = () => {
+    const lang = getLang();
+    document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+      const pressed = btn.dataset.lang === lang;
+      btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+  };
+
+  document.querySelectorAll('.lang-btn[data-lang]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setLang(btn.dataset.lang);
+    });
+  });
+
+  window.addEventListener('tt-lang-change', () => {
+    applyPressed();
+
+    const user = getUser();
+    setHello(user);
+    fillHome(user);
+
+    // Refresh Add Find dynamic texts (title + save button)
+    try {
+      const editId = (byId('find-form').dataset.editId || '').trim();
+      if (editId) {
+        setText('add-find-title', t('add_find_title_edit', { id: editId }));
+        byId('btn-save-find').textContent = t('btn_update');
+      } else {
+        setText('add-find-title', t('add_find_title_add'));
+        byId('btn-save-find').textContent = t('btn_save');
+      }
+    } catch {
+      // ignore
+    }
+
+    // Re-render list if visible (includes translated empty state)
+    const active = document.querySelector('.screen--active')?.id;
+    if (active === 'screen-finds') renderFindsList();
+
+    // QR status text depends on language
+    updateFindQr();
+  });
+
+  applyPressed();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  applyI18nToDom();
   populateSites();
   populatePlotAndLayerOptions();
+  wireLanguage();
   wireLogin();
   wirePermissions();
   wireReset();

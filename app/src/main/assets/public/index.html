@@ -13,108 +13,188 @@
         <div class="splash">
           <img class="splash__logo" src="assets/app-logo.png" alt="Titan Tag" onerror="this.onerror=null;this.src='assets/titan-tag.png';" />
           <div class="splash__title">Titan Tag</div>
-          <div class="splash__subtitle">תיעוד ממצאים בשטח</div>
+           <div class="splash__subtitle" data-i18n="splash_subtitle">תיעוד ממצאים בשטח</div>
         </div>
       </main>
 
       <main id="screen-login" class="screen" aria-label="Login">
-        <header class="topbar">
-          <div class="topbar__brand">שלום Titan Tag</div>
-        </header>
+         <header class="topbar">
+           <div class="topbar__brand" data-i18n="login_topbar_greeting">שלום Titan Tag</div>
+           <div class="topbar__langs" aria-label="language">
+             <button class="lang-btn" type="button" data-lang="he" data-i18n-title="lang_he" aria-pressed="true">
+               <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                 <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                 <rect x="0" y="0" width="48" height="6" fill="#1b5fbf" />
+                 <rect x="0" y="26" width="48" height="6" fill="#1b5fbf" />
+                 <path
+                   d="M24 9 L28.5 17 H19.5 Z M24 23 L28.5 15 H19.5 Z"
+                   fill="none"
+                   stroke="#1b5fbf"
+                   stroke-width="2"
+                   stroke-linejoin="round"
+                 />
+               </svg>
+             </button>
+             <button class="lang-btn" type="button" data-lang="en" data-i18n-title="lang_en" aria-pressed="false">
+               <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                 <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                 <g fill="#b22234">
+                   <rect x="0" y="0" width="48" height="3" />
+                   <rect x="0" y="6" width="48" height="3" />
+                   <rect x="0" y="12" width="48" height="3" />
+                   <rect x="0" y="18" width="48" height="3" />
+                   <rect x="0" y="24" width="48" height="3" />
+                   <rect x="0" y="30" width="48" height="2" />
+                 </g>
+                 <rect x="0" y="0" width="20" height="14" fill="#3c3b6e" />
+               </svg>
+             </button>
+           </div>
+         </header>
 
         <section class="card">
-          <h1 class="card__title">כניסה חד-פעמית</h1>
-          <p class="card__hint">הפרטים נשמרים במכשיר. אפשר לשנות דרך "איפוס משתמש".</p>
+           <h1 class="card__title" data-i18n="login_title">כניסה חד-פעמית</h1>
+           <p class="card__hint" data-i18n="login_hint">הפרטים נשמרים במכשיר. אפשר לשנות דרך "איפוס משתמש".</p>
 
           <form id="login-form" class="form" autocomplete="on">
             <label class="field">
-              <span class="field__label">שם</span>
+               <span class="field__label" data-i18n="label_name">שם</span>
               <input id="login-name" class="field__input" type="text" inputmode="text" required />
             </label>
 
             <label class="field">
-              <span class="field__label">אימייל</span>
+               <span class="field__label" data-i18n="label_email">אימייל</span>
               <input id="login-email" class="field__input" type="email" inputmode="email" required />
             </label>
 
             <label class="field">
-              <span class="field__label">תפקיד</span>
-              <select id="login-role" class="field__input" required>
-                <option value="" selected disabled>בחר/י</option>
-                <option value="מנהל">מנהל</option>
-                <option value="עובד">עובד</option>
-              </select>
+               <span class="field__label" data-i18n="label_role">תפקיד</span>
+               <select id="login-role" class="field__input" required>
+                 <option value="" selected disabled data-i18n="select_choose">בחר/י</option>
+                 <option value="מנהל" data-i18n="role_manager">מנהל</option>
+                 <option value="עובד" data-i18n="role_worker">עובד</option>
+               </select>
             </label>
 
             <label class="field">
-              <span class="field__label">אתר משויך</span>
-              <select id="login-site" class="field__input" required>
-                <option value="" selected disabled>בחר/י אתר</option>
-              </select>
+               <span class="field__label" data-i18n="label_associated_site">אתר משויך</span>
+               <select id="login-site" class="field__input" required>
+                 <option value="" selected disabled data-i18n="select_site">בחר/י אתר</option>
+               </select>
             </label>
 
             <details class="details">
-              <summary class="details__summary">הגדרות Google Sheets (חד-פעמי)</summary>
-              <label class="field">
-                <span class="field__label">כתובת Web App של Google Apps Script</span>
-                <input id="script-url" class="field__input" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" />
-              </label>
-              <p class="card__hint">אפשר להשאיר ריק כרגע ולהגדיר אחר כך.</p>
-            </details>
+               <summary class="details__summary" data-i18n="details_sheets">הגדרות Google Sheets (חד-פעמי)</summary>
+               <label class="field">
+                 <span class="field__label" data-i18n="label_script_url">כתובת Web App של Google Apps Script</span>
+                 <input id="script-url" class="field__input" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" data-i18n-placeholder="placeholder_script_url" />
+               </label>
+               <p class="card__hint" data-i18n="hint_script_optional">אפשר להשאיר ריק כרגע ולהגדיר אחר כך.</p>
+             </details>
 
-            <button class="btn btn--primary" type="submit">כניסה</button>
-          </form>
-        </section>
-      </main>
+             <button class="btn btn--primary" type="submit" data-i18n="btn_login">כניסה</button>
+           </form>
+         </section>
+       </main>
 
       <main id="screen-permissions" class="screen" aria-label="Permissions">
-        <header class="topbar">
-          <div id="hello-title" class="topbar__brand">שלום</div>
-        </header>
+         <header class="topbar">
+           <div id="hello-title" class="topbar__brand" data-i18n="hello_generic">שלום</div>
+           <div class="topbar__langs" aria-label="language">
+             <button class="lang-btn" type="button" data-lang="he" data-i18n-title="lang_he" aria-pressed="true">
+               <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                 <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                 <rect x="0" y="0" width="48" height="6" fill="#1b5fbf" />
+                 <rect x="0" y="26" width="48" height="6" fill="#1b5fbf" />
+                 <path d="M24 9 L28.5 17 H19.5 Z M24 23 L28.5 15 H19.5 Z" fill="none" stroke="#1b5fbf" stroke-width="2" stroke-linejoin="round" />
+               </svg>
+             </button>
+             <button class="lang-btn" type="button" data-lang="en" data-i18n-title="lang_en" aria-pressed="false">
+               <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                 <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                 <g fill="#b22234">
+                   <rect x="0" y="0" width="48" height="3" />
+                   <rect x="0" y="6" width="48" height="3" />
+                   <rect x="0" y="12" width="48" height="3" />
+                   <rect x="0" y="18" width="48" height="3" />
+                   <rect x="0" y="24" width="48" height="3" />
+                   <rect x="0" y="30" width="48" height="2" />
+                 </g>
+                 <rect x="0" y="0" width="20" height="14" fill="#3c3b6e" />
+               </svg>
+             </button>
+           </div>
+         </header>
 
         <section class="card">
-          <h1 class="card__title">הרשאות</h1>
-          <p class="card__hint">כדי לעבוד בשטח נצטרך הרשאות למצלמה, מיקרופון, מיקום ועוד.</p>
+           <h1 class="card__title" data-i18n="permissions_title">הרשאות</h1>
+           <p class="card__hint" data-i18n="permissions_hint">כדי לעבוד בשטח נצטרך הרשאות למצלמה, מיקרופון, מיקום ועוד.</p>
 
-          <button id="btn-request-permissions" class="btn btn--primary" type="button">בקש הרשאות</button>
-          <div id="permissions-status" class="status" role="status" aria-live="polite"></div>
+           <button id="btn-request-permissions" class="btn btn--primary" type="button" data-i18n="btn_request_permissions">בקש הרשאות</button>
+           <div id="permissions-status" class="status" role="status" aria-live="polite"></div>
 
-          <button id="btn-continue" class="btn" type="button">המשך</button>
-        </section>
-      </main>
+           <button id="btn-continue" class="btn" type="button" data-i18n="btn_continue">המשך</button>
+         </section>
+       </main>
 
       <main id="screen-home" class="screen" aria-label="Home">
-        <header class="topbar">
-          <div id="home-hello" class="topbar__brand">שלום</div>
-          <button id="btn-reset" class="topbar__action" type="button" title="יציאה">יציאה</button>
-        </header>
+         <header class="topbar">
+           <div id="home-hello" class="topbar__brand" data-i18n="hello_generic">שלום</div>
+           <div class="topbar__end">
+             <div class="topbar__langs" aria-label="language">
+               <button class="lang-btn" type="button" data-lang="he" data-i18n-title="lang_he" aria-pressed="true">
+                 <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                   <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                   <rect x="0" y="0" width="48" height="6" fill="#1b5fbf" />
+                   <rect x="0" y="26" width="48" height="6" fill="#1b5fbf" />
+                   <path d="M24 9 L28.5 17 H19.5 Z M24 23 L28.5 15 H19.5 Z" fill="none" stroke="#1b5fbf" stroke-width="2" stroke-linejoin="round" />
+                 </svg>
+               </button>
+               <button class="lang-btn" type="button" data-lang="en" data-i18n-title="lang_en" aria-pressed="false">
+                 <svg class="lang-flag" viewBox="0 0 48 32" aria-hidden="true">
+                   <rect x="0" y="0" width="48" height="32" fill="#ffffff" />
+                   <g fill="#b22234">
+                     <rect x="0" y="0" width="48" height="3" />
+                     <rect x="0" y="6" width="48" height="3" />
+                     <rect x="0" y="12" width="48" height="3" />
+                     <rect x="0" y="18" width="48" height="3" />
+                     <rect x="0" y="24" width="48" height="3" />
+                     <rect x="0" y="30" width="48" height="2" />
+                   </g>
+                   <rect x="0" y="0" width="20" height="14" fill="#3c3b6e" />
+                 </svg>
+               </button>
+             </div>
+             <button id="btn-reset" class="topbar__action" type="button" title="יציאה" data-i18n="btn_logout" data-i18n-title="btn_logout">יציאה</button>
+           </div>
+         </header>
 
         <section class="card">
           <h1 class="card__title">Titan Tag</h1>
-          <p class="card__hint">כרגע זה שלד בסיסי: מסך לוגו, כניסה חד-פעמית והרשאות.</p>
-          <div class="kv">
-            <div class="kv__row"><span>משתמש:</span> <span id="kv-user">-</span></div>
-            <div class="kv__row"><span>תפקיד:</span> <span id="kv-role">-</span></div>
-            <div class="kv__row"><span>אתר:</span> <span id="kv-site">-</span></div>
-            <div class="kv__row"><span>Sheets API:</span> <span id="kv-sheets">לא הוגדר</span></div>
-          </div>
+           <p class="card__hint" data-i18n="home_hint">כרגע זה שלד בסיסי: מסך לוגו, כניסה חד-פעמית והרשאות.</p>
+           <div class="kv">
+             <div class="kv__row"><span data-i18n="kv_user">משתמש:</span> <span id="kv-user">-</span></div>
+             <div class="kv__row"><span data-i18n="kv_role">תפקיד:</span> <span id="kv-role">-</span></div>
+             <div class="kv__row"><span data-i18n="kv_site">אתר:</span> <span id="kv-site">-</span></div>
+             <div class="kv__row"><span data-i18n="kv_sheets">Sheets API:</span> <span id="kv-sheets" data-i18n="kv_sheets_not_set">לא הוגדר</span></div>
+           </div>
 
           <div class="actions">
-            <button id="btn-go-add-find" class="btn btn--primary" type="button">הוסף ממצא</button>
-            <button id="btn-go-finds" class="btn" type="button">רשימת ממצאים</button>
-            <button id="btn-go-sites" class="btn" type="button" title="שנה אתר">שנה אתר</button>
-            <button id="btn-go-scan-find-qr" class="btn" type="button">סריקת QR לממצא</button>
-            <button id="btn-share" class="btn" type="button">שיתוף</button>
-          </div>
-        </section>
-      </main>
+             <button id="btn-go-add-find" class="btn btn--primary" type="button" data-i18n="btn_go_add_find">הוסף ממצא</button>
+             <button id="btn-go-finds" class="btn" type="button" data-i18n="btn_go_finds">רשימת ממצאים</button>
+             <button id="btn-go-sites" class="btn" type="button" title="שנה אתר" data-i18n="btn_go_sites" data-i18n-title="btn_go_sites">שנה אתר</button>
+             <button id="btn-go-scan-find-qr" class="btn" type="button" data-i18n="btn_go_scan_qr">סריקת QR לממצא</button>
+             <button id="btn-share" class="btn" type="button" data-i18n="btn_share">שיתוף</button>
+           </div>
+         </section>
+       </main>
 
       <main id="screen-scan-find-qr" class="screen" aria-label="Scan Find QR">
-        <header class="topbar">
-          <button id="btn-back-from-scan-find-qr" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div class="topbar__brand">סריקת QR לממצא</div>
-          <div class="topbar__spacer"></div>
-        </header>
+         <header class="topbar">
+           <button id="btn-back-from-scan-find-qr" class="topbar__action" type="button" title="חזרה" data-i18n="btn_back" data-i18n-title="btn_back">חזרה</button>
+           <div class="topbar__brand" data-i18n="scan_title">סריקת QR לממצא</div>
+           <div class="topbar__spacer"></div>
+         </header>
 
         <div class="scan-preview" hidden>
           <video id="scan-video" class="scan-preview__video" playsinline muted></video>
@@ -122,9 +202,9 @@
         </div>
 
         <section class="card">
-          <div class="scan-hero" aria-label="סריקת QR">
+           <div class="scan-hero" aria-label="סריקת QR" data-i18n-aria-label="scan_title">
             <img class="scan-hero__logo" src="assets/app-logo.png" alt="Titan Tag" onerror="this.onerror=null;this.src='assets/titan-tag.png';" />
-            <button id="btn-open-scan-camera" class="scan-hero__camera" type="button" title="פתח מצלמה">
+             <button id="btn-open-scan-camera" class="scan-hero__camera" type="button" title="פתח מצלמה" data-i18n-title="btn_open_camera" data-i18n-aria-label="btn_open_camera">
               <svg class="scan-hero__icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   fill="currentColor"
@@ -138,60 +218,60 @@
         </section>
       </main>
 
-      <main id="screen-add-find" class="screen" aria-label="Add Find">
-        <header class="topbar">
-          <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div id="add-find-title" class="topbar__brand">הוסף ממצא</div>
-          <div class="topbar__spacer"></div>
-        </header>
+       <main id="screen-add-find" class="screen" aria-label="Add Find">
+         <header class="topbar">
+           <button id="btn-back-from-add" class="topbar__action" type="button" title="חזרה" data-i18n="btn_back" data-i18n-title="btn_back">חזרה</button>
+           <div id="add-find-title" class="topbar__brand" data-i18n="add_find_title_add">הוסף ממצא</div>
+           <div class="topbar__spacer"></div>
+         </header>
 
         <div class="topbar-mic-container">
-          <button id="btn-mic" class="mic-btn mic-btn--inactive" aria-label="מיקרופון" title="מיקרופון">🎤</button>
-        </div>
+           <button id="btn-mic" class="mic-btn mic-btn--inactive" aria-label="מיקרופון" title="מיקרופון" data-i18n-aria-label="btn_mic" data-i18n-title="btn_mic">🎤</button>
+         </div>
 
         <section class="card">
           <form id="find-form" class="form" autocomplete="off">
             <label class="field">
-              <span class="field__label">שם אתר (לא ניתן לעריכה)</span>
+               <span class="field__label" data-i18n="label_find_site">שם אתר (לא ניתן לעריכה)</span>
               <input id="find-site" class="field__input" type="text" readonly />
             </label>
 
-            <div class="field-row" aria-label="חלקה ושכבה">
+             <div class="field-row" aria-label="חלקה ושכבה" data-i18n-aria-label="aria_plot_layer">
               <label class="field">
-                <span class="field__label">חלקה</span>
-                <select id="find-plot" class="field__input">
-                  <option value="" selected disabled>בחר/י</option>
-                </select>
+                 <span class="field__label" data-i18n="label_plot">חלקה</span>
+                 <select id="find-plot" class="field__input">
+                   <option value="" selected disabled data-i18n="select_choose">בחר/י</option>
+                 </select>
               </label>
 
               <label class="field">
-                <span class="field__label">שכבה</span>
-                <select id="find-layer" class="field__input">
-                  <option value="" selected disabled>בחר/י</option>
-                </select>
+                 <span class="field__label" data-i18n="label_layer">שכבה</span>
+                 <select id="find-layer" class="field__input">
+                   <option value="" selected disabled data-i18n="select_choose">בחר/י</option>
+                 </select>
               </label>
             </div>
 
             <label class="field">
-              <span class="field__label">תיאור טקסטואלי</span>
+               <span class="field__label" data-i18n="label_description">תיאור טקסטואלי</span>
               <textarea id="find-description" class="field__input field__input--textarea" rows="3"></textarea>
             </label>
 
             <label class="field">
-              <span class="field__label">מיקום נוכחי</span>
+               <span class="field__label" data-i18n="label_location">מיקום נוכחי</span>
               <input id="find-location" class="field__input" type="text" readonly />
             </label>
 
             <label class="field">
-              <span class="field__label">תאריך ושעה</span>
+               <span class="field__label" data-i18n="label_datetime">תאריך ושעה</span>
               <input id="find-datetime" class="field__input" type="text" readonly />
             </label>
 
             <div class="media">
               <div class="media__head">
-                <div class="media__title">תמונה\וידיאו\הוספה מהגלריה</div>
+                 <div class="media__title" data-i18n="media_title">תמונה\וידיאו\הוספה מהגלריה</div>
                 <div class="media__buttons">
-                  <button id="btn-image-camera" class="icon-btn" type="button" title="תמונה (מצלמה)">
+                   <button id="btn-image-camera" class="icon-btn" type="button" title="תמונה (מצלמה)" data-i18n-title="btn_image_camera">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path
                         fill="currentColor"
@@ -200,14 +280,14 @@
                     </svg>
                   </button>
 
-                  <button id="btn-image-gallery" class="icon-btn" type="button" title="הוספה מהגלריה">
+                   <button id="btn-image-gallery" class="icon-btn" type="button" title="הוספה מהגלריה" data-i18n-title="btn_image_gallery">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path fill="currentColor" d="M11 5h2v14h-2z" />
                       <path fill="currentColor" d="M5 11h14v2H5z" />
                     </svg>
                   </button>
 
-                  <button id="btn-video-camera" class="icon-btn" type="button" title="וידיאו (מצלמה)">
+                   <button id="btn-video-camera" class="icon-btn" type="button" title="וידיאו (מצלמה)" data-i18n-title="btn_video_camera">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                       <path
                         fill="currentColor"
@@ -225,17 +305,17 @@
               <div id="media-grid" class="media-grid" aria-label="media thumbnails"></div>
             </div>
 
-            <button id="btn-save-find" class="btn btn--primary" type="submit" title="שמירה">שמירה</button>
+             <button id="btn-save-find" class="btn btn--primary" type="submit" title="שמירה" data-i18n="btn_save" data-i18n-title="btn_save">שמירה</button>
 
             <label class="field">
-              <span class="field__label">מזהה ממצא</span>
+               <span class="field__label" data-i18n="label_find_id">מזהה ממצא</span>
               <input id="find-id" class="field__input" type="text" inputmode="text" autocomplete="off" />
             </label>
 
-            <div class="qr" aria-label="QR לממצא">
+             <div class="qr" aria-label="QR לממצא" data-i18n-aria-label="qr_title">
               <div class="qr__head">
-                <div class="qr__title">QR לממצא</div>
-                <button id="btn-print-qr" class="icon-btn icon-btn--sm" type="button" title="הדפס QR">
+               <div class="qr__title" data-i18n="qr_title">QR לממצא</div>
+               <button id="btn-print-qr" class="icon-btn icon-btn--sm" type="button" title="הדפס QR" data-i18n-title="btn_print_qr">
                   <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path
                       fill="currentColor"
@@ -245,7 +325,7 @@
                 </button>
               </div>
               <div class="qr__frame">
-                <img id="find-qr-image" class="qr__img" alt="QR לממצא" hidden />
+                 <img id="find-qr-image" class="qr__img" alt="QR לממצא" data-i18n-alt="qr_title" hidden />
               </div>
               <div id="qr-status" class="qr__hint" role="status" aria-live="polite"></div>
             </div>
@@ -253,12 +333,12 @@
         </section>
       </main>
 
-      <main id="screen-finds" class="screen" aria-label="Finds List">
-        <header class="topbar">
-          <button id="btn-back-from-finds" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div class="topbar__brand">רשימת ממצאים</div>
-          <button id="btn-new-find" class="topbar__action" type="button" title="ממצא חדש">ממצא חדש</button>
-        </header>
+       <main id="screen-finds" class="screen" aria-label="Finds List">
+         <header class="topbar">
+           <button id="btn-back-from-finds" class="topbar__action" type="button" title="חזרה" data-i18n="btn_back" data-i18n-title="btn_back">חזרה</button>
+           <div class="topbar__brand" data-i18n="finds_title">רשימת ממצאים</div>
+           <button id="btn-new-find" class="topbar__action" type="button" title="ממצא חדש" data-i18n="btn_new_find" data-i18n-title="btn_new_find">ממצא חדש</button>
+         </header>
 
         <section class="card">
           <div id="finds-list" class="finds"></div>
@@ -266,32 +346,32 @@
       </main>
 
       <!-- Sites Manager Screen -->
-      <main id="screen-sites" class="screen" aria-label="Sites Manager">
-        <header class="topbar">
-          <button id="btn-back-from-sites" class="topbar__action" type="button" title="חזרה">חזרה</button>
-          <div class="topbar__brand">שנה אתר</div>
-          <div class="topbar__spacer"></div>
-        </header>
+       <main id="screen-sites" class="screen" aria-label="Sites Manager">
+         <header class="topbar">
+           <button id="btn-back-from-sites" class="topbar__action" type="button" title="חזרה" data-i18n="btn_back" data-i18n-title="btn_back">חזרה</button>
+           <div class="topbar__brand" data-i18n="sites_title">שנה אתר</div>
+           <div class="topbar__spacer"></div>
+         </header>
 
         <section class="card">
-          <h1 class="card__title" id="sites-card-title">שנה אתר</h1>
+           <h1 class="card__title" id="sites-card-title" data-i18n="sites_title">שנה אתר</h1>
 
           <label class="field">
-            <span class="field__label">שם אתר</span>
-            <select id="site-name" class="field__input" required>
-              <option value="" selected disabled>בחר/י אתר</option>
-            </select>
-          </label>
+             <span class="field__label" data-i18n="label_site_name">שם אתר</span>
+             <select id="site-name" class="field__input" required>
+               <option value="" selected disabled data-i18n="select_site">בחר/י אתר</option>
+             </select>
+           </label>
 
-          <button id="btn-save-site" class="btn btn--primary" type="button">שמור</button>
-        </section>
-      </main>
+           <button id="btn-save-site" class="btn btn--primary" type="button" data-i18n="btn_save_site">שמור</button>
+         </section>
+       </main>
     </div>
 
     <div id="viewer" class="viewer" hidden>
       <div class="viewer__backdrop" data-close="1"></div>
       <div class="viewer__panel" role="dialog" aria-modal="true" aria-label="viewer">
-        <button class="viewer__close" type="button" data-close="1" title="סגור">סגור</button>
+         <button class="viewer__close" type="button" data-close="1" title="סגור" data-i18n="btn_close" data-i18n-title="btn_close">סגור</button>
         <div id="viewer-body" class="viewer__body"></div>
       </div>
     </div>

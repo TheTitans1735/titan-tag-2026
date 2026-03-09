@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 function getSpeechRecognition() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
@@ -20,7 +22,9 @@ export async function startHebrewTranscription({
   console.log('SpeechRecognition available:', !!SR);
   
   if (!SR) {
-    throw new Error('זיהוי דיבור לא נתמך במכשיר זה או ב-WebView');
+    const err = new Error(t('stt_not_supported_device'));
+    err.code = 'stt_not_supported';
+    throw err;
   }
 
   const rec = new SR();

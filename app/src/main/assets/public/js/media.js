@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 export async function filesToMediaItems(fileList) {
   const files = Array.from(fileList || []);
   const items = [];
@@ -6,7 +8,7 @@ export async function filesToMediaItems(fileList) {
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) continue;
 
     if (file.size > 15 * 1024 * 1024) {
-      throw new Error('קובץ גדול מדי (מעל 15MB). נסו קובץ קטן יותר.');
+      throw new Error(t('file_too_large', { maxMb: 15 }));
     }
 
     items.push({

@@ -1,3 +1,5 @@
+import { getLang } from './i18n.js';
+
 export function speakHebrew(text) {
   return new Promise((resolve) => {
     console.log('Speaking Hebrew:', text);
@@ -36,8 +38,9 @@ export function speakHebrew(text) {
     if (window.speechSynthesis) {
       console.log('Using Web TTS');
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'he-IL';
-      utterance.rate = 0.9;  // Slightly slower for Hebrew
+      const lang = getLang();
+      utterance.lang = lang === 'en' ? 'en-US' : 'he-IL';
+      utterance.rate = lang === 'en' ? 1.0 : 0.9;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       

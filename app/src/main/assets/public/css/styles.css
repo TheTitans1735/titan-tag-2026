@@ -75,6 +75,43 @@ body {
   font-weight: 650;
 }
 
+.topbar__end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar__langs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.lang-btn {
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  width: 44px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-content: center;
+}
+
+.lang-btn[aria-pressed='true'] {
+  background: linear-gradient(180deg, rgba(242, 175, 244, 0.9), rgba(242, 175, 244, 0.55));
+  box-shadow: 0 10px 26px rgba(31, 26, 36, 0.18);
+}
+
+.lang-flag {
+  width: 28px;
+  height: 18px;
+  border-radius: 4px;
+  display: block;
+  box-shadow: 0 1px 0 rgba(31, 26, 36, 0.08) inset;
+}
+
 .card {
   border: 1px solid var(--stroke);
   border-radius: var(--radius);

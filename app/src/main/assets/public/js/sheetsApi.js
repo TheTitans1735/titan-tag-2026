@@ -1,4 +1,5 @@
 import { getScriptUrl } from './storage.js';
+import { t } from './i18n.js';
 
 function withQuery(url, params) {
   const u = new URL(url);
@@ -11,7 +12,7 @@ function withQuery(url, params) {
 
 async function fetchJson(url, init) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    throw new Error('אין חיבור אינטרנט');
+    throw new Error(t('sheets_no_internet'));
   }
 
   const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -46,14 +47,14 @@ export function getConfiguredScriptUrl() {
 
 export async function sheetsRead(sheet) {
   const base = getConfiguredScriptUrl();
-  if (!base) throw new Error('לא הוגדרה כתובת Google Apps Script');
+  if (!base) throw new Error(t('sheets_missing_script_url'));
   const url = withQuery(base, { action: 'read', sheet });
   return fetchJson(url);
 }
 
 export async function sheetsWrite(sheet, rowObject) {
   const base = getConfiguredScriptUrl();
-  if (!base) throw new Error('לא הוגדרה כתובת Google Apps Script');
+  if (!base) throw new Error(t('sheets_missing_script_url'));
   const body = new URLSearchParams({ action: 'write', sheet, ...rowObject });
   return fetchJson(base, {
     method: 'POST',
